@@ -1,0 +1,1319 @@
+.hy-homes-search,
+.hy-homes-search *,
+.hy-homes-results,
+.hy-homes-results *,
+.hy-homes-carousel,
+.hy-homes-carousel *,
+.hy-homes-detail,
+.hy-homes-detail * {
+	box-sizing: border-box;
+}
+
+.hy-homes-search {
+	--hy-homes-bar: #4f5956;
+	--hy-homes-text: #f8f8f5;
+	--hy-homes-muted: #aeb5b1;
+	--hy-homes-line: #e6e8e5;
+	--hy-homes-panel: #ffffff;
+	--hy-homes-panel-text: #5a615e;
+	--hy-homes-button: #f2f2ee;
+	--hy-homes-button-text: #4b5551;
+	--hy-homes-green: #599569;
+	position: relative;
+	width: 100%;
+	font-family: Montserrat, "Helvetica Neue", Arial, sans-serif;
+}
+
+.hy-homes-search__form {
+	position: relative;
+	z-index: 2;
+	display: flex;
+	align-items: center;
+	width: 100%;
+	min-height: 104px;
+	margin: 0;
+	padding: 28px 30px;
+	background: var(--hy-homes-bar);
+	border: 0;
+	border-radius: 2px;
+	box-shadow: none;
+}
+
+.hy-homes-search__field {
+	display: flex;
+	align-items: center;
+	min-width: 0;
+	gap: 28px;
+}
+
+.hy-homes-search__field--neighborhood {
+	flex: 1.15 1 310px;
+}
+
+.hy-homes-search__field--rooms {
+	flex: 0.8 1 210px;
+}
+
+.hy-homes-search__field--move-in {
+	flex: 1.25 1 330px;
+}
+
+.hy-homes-search__label {
+	flex: 0 0 auto;
+	margin: 0;
+	color: var(--hy-homes-text);
+	font-size: 15px;
+	font-weight: 700;
+	line-height: 1.2;
+	text-transform: uppercase;
+	white-space: nowrap;
+}
+
+.hy-homes-search__control {
+	position: relative;
+	flex: 1 1 auto;
+	min-width: 118px;
+}
+
+.hy-homes-search__select,
+.hy-homes-search__number {
+	display: block;
+	width: 100%;
+	min-height: 44px;
+	margin: 0;
+	padding: 0;
+	color: var(--hy-homes-muted);
+	background: transparent;
+	border: 0;
+	border-radius: 0;
+	box-shadow: none;
+	font: inherit;
+	font-size: 15px;
+	font-weight: 600;
+	line-height: 44px;
+	outline: 0;
+}
+
+.hy-homes-search__clear {
+	position: absolute;
+	top: 4px;
+	right: 8px;
+	z-index: 25;
+	display: none;
+	align-items: center;
+	justify-content: center;
+	width: 18px;
+	height: 18px;
+	padding: 0;
+	color: #6a746f;
+	background: transparent;
+	border: 0;
+	border-radius: 50%;
+	cursor: pointer;
+	font-family: Arial, sans-serif;
+	font-size: 11px;
+	font-weight: 400;
+	line-height: 1;
+}
+
+.hy-homes-search__control.has-value .hy-homes-search__clear {
+	display: inline-flex;
+}
+
+.hy-homes-search__select-wrap.is-open .hy-homes-search__clear {
+	display: none;
+}
+
+.hy-homes-search__select {
+	appearance: none;
+	cursor: pointer;
+}
+
+.hy-homes-search__number::placeholder {
+	color: var(--hy-homes-muted);
+	opacity: 1;
+}
+
+.hy-homes-search__number::-webkit-outer-spin-button,
+.hy-homes-search__number::-webkit-inner-spin-button {
+	margin: 0;
+	appearance: none;
+}
+
+.hy-homes-search__number[type="number"] {
+	appearance: textfield;
+}
+
+.hy-homes-search__divider {
+	flex: 0 0 4px;
+	width: 4px;
+	height: 56px;
+	margin: 0 24px;
+	background: var(--hy-homes-line);
+}
+
+.hy-homes-search__submit {
+	flex: 0 0 auto;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 186px;
+	min-height: 34px;
+	margin: 0 0 0 18px;
+	padding: 8px 18px;
+	color: var(--hy-homes-button-text);
+	background: var(--hy-homes-button);
+	border: 0;
+	border-radius: 999px;
+	box-shadow: none;
+	cursor: pointer;
+	font-family: inherit;
+	font-size: 14px;
+	font-weight: 800;
+	line-height: 1.2;
+	text-align: center;
+	text-transform: uppercase;
+	transition: background-color 160ms ease, color 160ms ease, transform 160ms ease;
+	white-space: nowrap;
+}
+
+.hy-homes-search__submit:hover,
+.hy-homes-search__submit:focus-visible {
+	color: #ffffff;
+	background: #343c39;
+}
+
+.hy-homes-search__submit:active {
+	transform: translateY(1px);
+}
+
+.hy-homes-search__select.is-enhanced {
+	position: absolute;
+	inset: 0 auto auto 0;
+	width: 1px;
+	height: 1px;
+	opacity: 0;
+	pointer-events: none;
+}
+
+.hy-homes-search__custom-button {
+	display: flex;
+	align-items: center;
+	justify-content: flex-start;
+	width: 100%;
+	min-height: 44px;
+	padding: 0;
+	color: var(--hy-homes-muted);
+	background: transparent;
+	border: 0;
+	border-radius: 0;
+	box-shadow: none;
+	cursor: pointer;
+	font-family: inherit;
+	font-size: 15px;
+	font-weight: 600;
+	line-height: 1.2;
+	text-align: left;
+}
+
+.hy-homes-search__custom-button:focus-visible {
+	outline: 2px solid var(--hy-homes-line);
+	outline-offset: 6px;
+}
+
+.hy-homes-search__custom-list {
+	position: absolute;
+	top: 0;
+	left: 0;
+	z-index: 20;
+	display: none;
+	width: max(120px, 100%);
+	min-width: 120px;
+	max-height: 320px;
+	margin: 0;
+	padding: 0 8px;
+	overflow-y: auto;
+	list-style: none;
+	color: var(--hy-homes-panel-text);
+	background: var(--hy-homes-panel);
+	box-shadow: 0 2px 8px rgba(22, 27, 25, 0.18);
+}
+
+.hy-homes-search__select-wrap.is-open .hy-homes-search__custom-list {
+	display: block;
+}
+
+.hy-homes-search__custom-option {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 35px;
+	padding: 7px 8px;
+	border-top: 1px solid #c7cbc8;
+	cursor: pointer;
+	font-size: 13px;
+	font-weight: 700;
+	line-height: 1.2;
+	text-align: center;
+}
+
+.hy-homes-search__custom-option:first-child {
+	border-top: 0;
+}
+
+.hy-homes-search__custom-option:hover,
+.hy-homes-search__custom-option.is-active,
+.hy-homes-search__custom-option[aria-selected="true"] {
+	color: #202523;
+	background: #f4f4f1;
+}
+
+.hy-homes-search--results {
+	--hy-homes-bar: #f1f1ee;
+	--hy-homes-text: #111715;
+	--hy-homes-muted: #4f5753;
+	--hy-homes-line: #4e5854;
+	--hy-homes-button: var(--hy-homes-green);
+	--hy-homes-button-text: #ffffff;
+}
+
+.hy-homes-search--results .hy-homes-search__form {
+	min-height: 106px;
+	padding: 28px 16px;
+	background: var(--hy-homes-bar);
+}
+
+.hy-homes-search--results .hy-homes-search__field {
+	gap: 16px;
+}
+
+.hy-homes-search--results .hy-homes-search__label {
+	color: var(--hy-homes-text);
+	font-size: 14px;
+	letter-spacing: 0;
+}
+
+.hy-homes-search--results .hy-homes-search__field--neighborhood {
+	flex-basis: 330px;
+}
+
+.hy-homes-search--results .hy-homes-search__field--rooms {
+	flex-basis: 194px;
+}
+
+.hy-homes-search--results .hy-homes-search__field--move-in {
+	flex-basis: 340px;
+}
+
+.hy-homes-search--results .hy-homes-search__control {
+	min-width: 80px;
+}
+
+.hy-homes-search--results .hy-homes-search__select,
+.hy-homes-search--results .hy-homes-search__number,
+.hy-homes-search--results .hy-homes-search__custom-button {
+	min-height: 48px;
+	padding: 0 34px 0 22px;
+	color: var(--hy-homes-muted);
+	background: #ffffff;
+	border: 1px solid #a8adaa;
+	border-radius: 10px;
+	font-size: 15px;
+	font-weight: 700;
+	line-height: 48px;
+}
+
+.hy-homes-search--results .hy-homes-search__custom-button {
+	justify-content: center;
+	line-height: 1.2;
+	text-align: center;
+}
+
+.hy-homes-search--results .hy-homes-search__field--rooms .hy-homes-search__number {
+	text-align: center;
+}
+
+.hy-homes-search--results .hy-homes-search__divider {
+	width: 4px;
+	height: 54px;
+	margin: 0 10px;
+	background: var(--hy-homes-line);
+}
+
+.hy-homes-search--results .hy-homes-search__submit {
+	min-width: 184px;
+	min-height: 46px;
+	margin-left: 12px;
+	color: var(--hy-homes-button-text);
+	background: var(--hy-homes-button);
+	border-radius: 999px;
+	font-size: 13px;
+}
+
+.hy-homes-search--results .hy-homes-search__submit:hover,
+.hy-homes-search--results .hy-homes-search__submit:focus-visible {
+	color: #ffffff;
+	background: #467d55;
+}
+
+.hy-homes-search--results .hy-homes-search__clear {
+	top: 4px;
+	right: 10px;
+	color: #6f7a74;
+}
+
+.hy-homes-search--results .hy-homes-search__custom-list {
+	top: 0;
+	min-width: 100%;
+	padding: 0 10px;
+	border: 1px solid #a8adaa;
+	border-radius: 10px;
+	box-shadow: 0 8px 20px rgba(15, 19, 17, 0.18);
+}
+
+.hy-homes-results {
+	width: 100%;
+	font-family: Montserrat, "Helvetica Neue", Arial, sans-serif;
+	background: #ffffff;
+}
+
+.hy-homes-results__filter-band {
+	width: 100vw;
+	margin-left: calc(50% - 50vw);
+	padding: 40px 22px 24px;
+	background: #121816;
+}
+
+.hy-homes-results__filter-inner {
+	width: min(1228px, 100%);
+	margin: 0 auto;
+}
+
+.hy-homes-results__breadcrumbs {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-wrap: wrap;
+	gap: 6px;
+	margin-top: 22px;
+	color: #c8ccc8;
+	font-size: 13px;
+	font-weight: 400;
+	line-height: 1.4;
+	text-align: center;
+}
+
+.hy-homes-results__breadcrumbs a {
+	color: #c8ccc8;
+	text-decoration: underline;
+	text-underline-offset: 2px;
+}
+
+.hy-homes-results__breadcrumb-separator {
+	color: #c8ccc8;
+}
+
+.hy-homes-results__content {
+	width: min(1120px, 100%);
+	margin: 0 auto;
+	padding: 46px 24px 70px;
+}
+
+.hy-homes-results__title {
+	margin: 0 0 42px;
+	color: #bfc2c2;
+	font-size: 72px;
+	font-weight: 800;
+	line-height: 1.02;
+	letter-spacing: 0;
+	text-align: center;
+}
+
+.hy-homes-results__grid {
+	display: grid;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	gap: 10px;
+}
+
+.hy-homes-property-card {
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+	overflow: hidden;
+	background: #f2f2ee;
+	border-radius: 0;
+	box-shadow: none;
+}
+
+.hy-homes-property-card__media {
+	position: relative;
+	display: block;
+	aspect-ratio: 1.43 / 1;
+	overflow: hidden;
+	color: inherit;
+	text-decoration: none;
+	background: #d9ddd9;
+}
+
+.hy-homes-property-card__image,
+.hy-homes-property-card__image-placeholder {
+	display: block;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+.hy-homes-property-card__image-placeholder {
+	background: linear-gradient(135deg, #d7ddd8, #f2f2ee);
+}
+
+.hy-homes-property-card__status {
+	position: absolute;
+	top: 0;
+	left: 0;
+	z-index: 2;
+	display: inline-flex;
+	align-items: center;
+	min-height: 28px;
+	padding: 6px 12px;
+	color: #ffffff;
+	background: #4d5854;
+	font-size: 11px;
+	font-weight: 500;
+	line-height: 1;
+	text-transform: uppercase;
+}
+
+.hy-homes-property-card__body {
+	display: flex;
+	flex-direction: column;
+	min-height: 82px;
+	padding: 10px 12px 12px;
+	background: #f2f2ee;
+}
+
+.hy-homes-property-card__title {
+	margin: 0 0 10px;
+	color: #1d2320;
+	font-size: 12px;
+	font-weight: 800;
+	line-height: 1.18;
+	letter-spacing: 0;
+}
+
+.hy-homes-property-card__title a {
+	color: inherit;
+	text-decoration: none;
+}
+
+.hy-homes-property-card__meta {
+	display: flex;
+	align-items: center;
+	gap: 7px;
+	margin-top: auto;
+	color: #1f2522;
+	font-size: 12px;
+	font-weight: 500;
+	line-height: 1;
+}
+
+.hy-homes-property-card__spec {
+	display: inline-flex;
+	align-items: center;
+	gap: 5px;
+	white-space: nowrap;
+}
+
+.hy-homes-property-card__icon {
+	width: 14px;
+	height: 14px;
+	fill: currentColor;
+}
+
+.hy-homes-property-card__separator {
+	color: #555e59;
+}
+
+.hy-homes-property-card__price {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 24px;
+	margin-left: auto;
+	padding: 5px 10px;
+	color: #ffffff;
+	background: #4d5854;
+	font-size: 13px;
+	font-weight: 800;
+	white-space: nowrap;
+}
+
+.hy-homes-property-card__button {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 49px;
+	padding: 12px 16px;
+	color: #ffffff;
+	background: #599569;
+	font-size: 14px;
+	font-weight: 800;
+	line-height: 1;
+	text-align: center;
+	text-decoration: none;
+	text-transform: uppercase;
+	transition: background-color 160ms ease;
+}
+
+.hy-homes-property-card__button:hover,
+.hy-homes-property-card__button:focus-visible {
+	color: #ffffff;
+	background: #467d55;
+}
+
+.hy-homes-results__empty {
+	margin: 0;
+	color: #4f5753;
+	font-size: 16px;
+	font-weight: 600;
+	text-align: center;
+}
+
+.hy-homes-results__pagination {
+	margin-top: 34px;
+}
+
+.hy-homes-results__pagination ul {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.hy-homes-results__pagination li {
+	margin: 0;
+	padding: 0;
+}
+
+.hy-homes-results__pagination a,
+.hy-homes-results__pagination span {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 36px;
+	min-height: 36px;
+	padding: 8px 12px;
+	color: #4f5753;
+	background: #f2f2ee;
+	text-decoration: none;
+	font-size: 13px;
+	font-weight: 800;
+}
+
+.hy-homes-results__pagination .current,
+.hy-homes-results__pagination a:hover,
+.hy-homes-results__pagination a:focus-visible {
+	color: #ffffff;
+	background: #599569;
+}
+
+.hy-homes-carousel {
+	--hy-homes-carousel-gap: 10px;
+	--hy-homes-carousel-columns: 4;
+	width: min(1090px, 100%);
+	margin: 0 auto;
+	padding: 18px 0;
+	font-family: Montserrat, "Helvetica Neue", Arial, sans-serif;
+}
+
+.hy-homes-carousel__header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 20px;
+	margin-bottom: 32px;
+}
+
+.hy-homes-carousel__title {
+	margin: 0;
+	color: #4c5551;
+	font-size: 22px;
+	font-weight: 800;
+	line-height: 1.2;
+	letter-spacing: 0;
+}
+
+.hy-homes-carousel__nav {
+	display: inline-flex;
+	align-items: center;
+	gap: 44px;
+	margin-left: auto;
+}
+
+.hy-homes-carousel__button {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 22px;
+	height: 28px;
+	padding: 0;
+	color: #4c5551;
+	background: transparent;
+	border: 0;
+	border-radius: 0;
+	box-shadow: none;
+	cursor: pointer;
+	font-family: Arial, sans-serif;
+	font-size: 26px;
+	font-weight: 800;
+	line-height: 1;
+	transition: color 160ms ease, opacity 160ms ease;
+}
+
+.hy-homes-carousel__button:hover,
+.hy-homes-carousel__button:focus-visible {
+	color: #599569;
+}
+
+.hy-homes-carousel__button:disabled {
+	cursor: default;
+	opacity: 0.28;
+}
+
+.hy-homes-carousel.is-static .hy-homes-carousel__nav {
+	visibility: hidden;
+}
+
+.hy-homes-carousel__viewport {
+	width: 100%;
+	overflow-x: auto;
+	overflow-y: hidden;
+	scroll-behavior: smooth;
+	scroll-snap-type: x mandatory;
+	scrollbar-width: none;
+}
+
+.hy-homes-carousel__viewport::-webkit-scrollbar {
+	display: none;
+}
+
+.hy-homes-carousel__track {
+	display: flex;
+	gap: var(--hy-homes-carousel-gap);
+	min-width: 100%;
+}
+
+.hy-homes-carousel__slide {
+	flex: 0 0 calc((100% - (var(--hy-homes-carousel-gap) * (var(--hy-homes-carousel-columns) - 1))) / var(--hy-homes-carousel-columns));
+	min-width: 0;
+	scroll-snap-align: start;
+}
+
+.hy-homes-carousel .hy-homes-property-card {
+	height: 100%;
+}
+
+.hy-homes-carousel__empty {
+	margin: 0;
+	color: #4f5753;
+	font-size: 16px;
+	font-weight: 600;
+}
+
+.hy-homes-detail {
+	width: 100%;
+	background: #ffffff;
+	font-family: Montserrat, "Helvetica Neue", Arial, sans-serif;
+}
+
+.hy-homes-detail__content {
+	width: min(1120px, 100%);
+	margin: 0 auto;
+	padding: 28px 32px 70px;
+}
+
+.hy-homes-detail__main {
+	display: grid;
+	grid-template-columns: minmax(0, 1.46fr) minmax(320px, 0.84fr);
+	gap: 24px;
+	align-items: start;
+}
+
+.hy-homes-detail__media-column {
+	min-width: 0;
+}
+
+.hy-homes-detail-gallery__stage {
+	position: relative;
+	aspect-ratio: 1.46 / 1;
+	overflow: hidden;
+	background: #d8dcda;
+}
+
+.hy-homes-detail-gallery__item {
+	position: absolute;
+	inset: 0;
+	display: none;
+}
+
+.hy-homes-detail-gallery__item.is-active {
+	display: block;
+}
+
+.hy-homes-detail-gallery__media,
+.hy-homes-detail-gallery__placeholder {
+	display: block;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	border: 0;
+}
+
+.hy-homes-detail-gallery__placeholder {
+	background: linear-gradient(135deg, #d7ddd8, #f2f2ee);
+}
+
+.hy-homes-detail-gallery__status {
+	position: absolute;
+	top: 0;
+	left: 0;
+	z-index: 3;
+	display: inline-flex;
+	align-items: center;
+	min-height: 38px;
+	padding: 8px 14px;
+	color: #ffffff;
+	background: #4d5854;
+	font-size: 15px;
+	font-weight: 500;
+	line-height: 1;
+	text-transform: uppercase;
+}
+
+.hy-homes-detail-gallery__price {
+	position: absolute;
+	right: 0;
+	bottom: 0;
+	z-index: 3;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 196px;
+	min-height: 64px;
+	padding: 12px 20px;
+	color: #ffffff;
+	background: rgba(31, 35, 33, 0.78);
+	font-size: 25px;
+	font-weight: 800;
+	line-height: 1;
+}
+
+.hy-homes-detail-gallery__arrow {
+	position: absolute;
+	top: 50%;
+	z-index: 4;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 42px;
+	height: 58px;
+	padding: 0;
+	color: #ffffff;
+	background: transparent;
+	border: 0;
+	cursor: pointer;
+	font-family: Arial, sans-serif;
+	font-size: 44px;
+	font-weight: 300;
+	line-height: 1;
+	text-shadow: 0 1px 6px rgba(0, 0, 0, 0.45);
+	transform: translateY(-50%);
+}
+
+.hy-homes-detail-gallery__arrow--prev {
+	left: 14px;
+}
+
+.hy-homes-detail-gallery__arrow--next {
+	right: 14px;
+}
+
+.hy-homes-detail-gallery__thumbs {
+	display: grid;
+	grid-template-columns: repeat(7, minmax(0, 1fr));
+	gap: 10px;
+	margin-top: 14px;
+}
+
+.hy-homes-detail-gallery__thumb {
+	display: block;
+	aspect-ratio: 1.35 / 1;
+	padding: 0;
+	overflow: hidden;
+	background: #aaa5a5;
+	border: 2px solid transparent;
+	cursor: pointer;
+}
+
+.hy-homes-detail-gallery__thumb.is-active {
+	border-color: #599569;
+}
+
+.hy-homes-detail-gallery__thumb img {
+	display: block;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+.hy-homes-detail-gallery__thumb-label {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 100%;
+	height: 100%;
+	color: #ffffff;
+	background: #aaa5a5;
+	font-size: 10px;
+	font-weight: 800;
+}
+
+.hy-homes-detail-strip {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 18px;
+	margin-top: 14px;
+	padding: 14px 22px;
+	border: 1px solid #dededb;
+	background: #ffffff;
+}
+
+.hy-homes-detail-strip__text {
+	display: grid;
+	gap: 4px;
+	color: #111715;
+	font-size: 12px;
+	font-weight: 700;
+	line-height: 1.2;
+}
+
+.hy-homes-detail-strip__text span {
+	color: #4f5753;
+	font-weight: 500;
+}
+
+.hy-homes-detail-strip__specs {
+	display: inline-flex;
+	align-items: center;
+	gap: 18px;
+	margin-left: auto;
+	color: #111715;
+	font-size: 11px;
+}
+
+.hy-homes-detail-strip__specs span {
+	display: inline-grid;
+	gap: 3px;
+	justify-items: center;
+}
+
+.hy-homes-detail__info {
+	padding: 8px 0 0;
+	color: #333633;
+}
+
+.hy-homes-detail__title {
+	margin: 0 0 10px;
+	color: #2d3330;
+	font-size: 21px;
+	font-weight: 800;
+	line-height: 1.2;
+	letter-spacing: 0;
+}
+
+.hy-homes-detail__street {
+	margin: 0 0 10px;
+	color: #1f2522;
+	font-size: 15px;
+	font-weight: 600;
+	line-height: 1.35;
+}
+
+.hy-homes-detail__rule {
+	width: 100%;
+	height: 2px;
+	margin-bottom: 12px;
+	background: #00ad9f;
+}
+
+.hy-homes-detail__description {
+	color: #3e4440;
+	font-size: 13px;
+	font-weight: 500;
+	line-height: 1.25;
+	letter-spacing: 0;
+}
+
+.hy-homes-detail__description p {
+	margin: 0 0 14px;
+}
+
+.hy-homes-detail__description strong {
+	font-weight: 800;
+	text-transform: uppercase;
+}
+
+.hy-homes-detail__whatsapp {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 22px;
+	width: min(270px, 100%);
+	min-height: 36px;
+	margin-top: 18px;
+	padding: 9px 16px;
+	color: #ffffff;
+	background: #00ad9f;
+	border-radius: 8px;
+	font-size: 9px;
+	font-weight: 700;
+	line-height: 1;
+	text-decoration: none;
+	text-transform: uppercase;
+}
+
+.hy-homes-detail__whatsapp:hover,
+.hy-homes-detail__whatsapp:focus-visible {
+	color: #ffffff;
+	background: #018f84;
+}
+
+.hy-homes-whatsapp-icon {
+	width: 16px;
+	height: 16px;
+	fill: currentColor;
+	flex: 0 0 auto;
+}
+
+.hy-homes-detail-map {
+	width: 100%;
+	margin: 74px 0 70px;
+}
+
+.hy-homes-detail-map iframe {
+	display: block;
+	width: 100%;
+	height: 270px;
+	border: 0;
+}
+
+.hy-homes-detail-related {
+	padding: 0 8px 70px;
+}
+
+.hy-homes-detail-related__title {
+	margin: 0 0 44px;
+	color: #2c302e;
+	font-size: 18px;
+	font-weight: 600;
+	line-height: 1.2;
+	letter-spacing: 0;
+	text-align: center;
+	text-transform: uppercase;
+}
+
+.hy-homes-detail-related__pagination {
+	margin-top: 44px;
+}
+
+.hy-homes-location-banner {
+	position: relative;
+	width: 100vw;
+	margin-left: calc(50% - 50vw);
+	padding: 0;
+}
+
+.hy-homes-location-banner__header {
+	position: absolute;
+	z-index: 3;
+	right: max(24px, calc((100vw - 1120px) / 2));
+	margin: 16px 0 0;
+}
+
+.hy-homes-location-banner__item {
+	position: relative;
+	display: flex;
+	align-items: flex-end;
+	min-height: 500px;
+	background-position: center;
+	background-size: cover;
+}
+
+.hy-homes-location-banner__item::before {
+	content: "";
+	position: absolute;
+	inset: 0;
+	background: linear-gradient(90deg, rgba(0, 0, 0, 0.62), rgba(0, 0, 0, 0.18));
+}
+
+.hy-homes-location-banner__content {
+	position: relative;
+	z-index: 2;
+	width: min(980px, 100%);
+	margin: 0 auto;
+	padding: 0 32px 34px;
+	color: #ffffff;
+}
+
+.hy-homes-location-banner__content h2 {
+	max-width: 700px;
+	margin: 0 0 8px;
+	font-size: 48px;
+	font-weight: 500;
+	line-height: 1;
+	letter-spacing: 0;
+	text-transform: uppercase;
+}
+
+.hy-homes-location-banner__content p {
+	max-width: 560px;
+	margin: 0;
+	font-size: 16px;
+	font-weight: 800;
+	line-height: 1.3;
+}
+
+.hy-homes-location-banner__content a {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 27px;
+	margin-top: 16px;
+	padding: 7px 18px;
+	color: #ffffff;
+	background: #599569;
+	border-radius: 999px;
+	font-size: 10px;
+	font-weight: 800;
+	line-height: 1;
+	text-decoration: none;
+	text-transform: uppercase;
+}
+
+@media (max-width: 1024px) {
+	.hy-homes-search__form {
+		align-items: stretch;
+		flex-wrap: wrap;
+		gap: 18px 22px;
+		min-height: 0;
+		padding: 24px;
+	}
+
+	.hy-homes-search__field {
+		flex: 1 1 calc(50% - 22px);
+	}
+
+	.hy-homes-search__field--move-in {
+		flex-basis: calc(65% - 22px);
+	}
+
+	.hy-homes-search__divider {
+		display: none;
+	}
+
+	.hy-homes-search__submit {
+		flex: 1 1 180px;
+		margin-left: 0;
+	}
+
+	.hy-homes-search--results .hy-homes-search__submit {
+		margin-left: 0;
+	}
+
+	.hy-homes-results__title {
+		font-size: 56px;
+	}
+
+	.hy-homes-results__grid {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 16px;
+	}
+
+	.hy-homes-carousel {
+		--hy-homes-carousel-columns: 2;
+		padding-right: 18px;
+		padding-left: 18px;
+	}
+
+	.hy-homes-detail__content {
+		padding-right: 22px;
+		padding-left: 22px;
+	}
+
+	.hy-homes-detail__main {
+		grid-template-columns: 1fr;
+	}
+
+	.hy-homes-detail__info {
+		padding-top: 8px;
+	}
+
+	.hy-homes-detail-map {
+		margin-top: 52px;
+	}
+}
+
+@media (max-width: 720px) {
+	.hy-homes-search__form {
+		display: grid;
+		grid-template-columns: 1fr;
+		gap: 18px;
+		padding: 22px 18px;
+	}
+
+	.hy-homes-search__field,
+	.hy-homes-search__field--neighborhood,
+	.hy-homes-search__field--rooms,
+	.hy-homes-search__field--move-in {
+		display: grid;
+		grid-template-columns: minmax(124px, 0.45fr) minmax(0, 1fr);
+		gap: 16px;
+		width: 100%;
+	}
+
+	.hy-homes-search__label {
+		font-size: 13px;
+		white-space: normal;
+	}
+
+	.hy-homes-search__submit {
+		width: 100%;
+		min-height: 40px;
+		white-space: normal;
+	}
+
+	.hy-homes-search--results .hy-homes-search__form {
+		padding: 20px 16px;
+	}
+
+	.hy-homes-search--results .hy-homes-search__select,
+	.hy-homes-search--results .hy-homes-search__number,
+	.hy-homes-search--results .hy-homes-search__custom-button {
+		min-height: 44px;
+		line-height: 44px;
+	}
+
+	.hy-homes-results__filter-band {
+		padding: 28px 16px 22px;
+	}
+
+	.hy-homes-results__content {
+		padding: 36px 18px 54px;
+	}
+
+	.hy-homes-results__title {
+		margin-bottom: 30px;
+		font-size: 42px;
+	}
+
+	.hy-homes-results__grid {
+		grid-template-columns: 1fr;
+	}
+
+	.hy-homes-carousel {
+		--hy-homes-carousel-columns: 1;
+	}
+
+	.hy-homes-carousel__header {
+		align-items: flex-start;
+		margin-bottom: 22px;
+	}
+
+	.hy-homes-carousel__title {
+		font-size: 20px;
+	}
+
+	.hy-homes-carousel__nav {
+		gap: 22px;
+	}
+
+	.hy-homes-detail__content {
+		padding: 22px 16px 54px;
+	}
+
+	.hy-homes-detail-gallery__stage {
+		aspect-ratio: 1.18 / 1;
+	}
+
+	.hy-homes-detail-gallery__status {
+		min-height: 32px;
+		font-size: 12px;
+	}
+
+	.hy-homes-detail-gallery__price {
+		min-width: 150px;
+		min-height: 50px;
+		font-size: 19px;
+	}
+
+	.hy-homes-detail-gallery__thumbs {
+		grid-template-columns: repeat(4, minmax(0, 1fr));
+		gap: 8px;
+	}
+
+	.hy-homes-detail-strip {
+		align-items: flex-start;
+		flex-direction: column;
+	}
+
+	.hy-homes-detail-strip__specs {
+		margin-left: 0;
+	}
+
+	.hy-homes-detail__whatsapp {
+		width: 100%;
+	}
+
+	.hy-homes-detail-map {
+		margin: 40px 0 48px;
+	}
+
+	.hy-homes-detail-map iframe {
+		height: 230px;
+	}
+
+	.hy-homes-detail-related {
+		padding-bottom: 52px;
+	}
+
+	.hy-homes-location-banner__item {
+		min-height: 390px;
+	}
+
+	.hy-homes-location-banner__content {
+		padding: 0 22px 28px;
+	}
+
+	.hy-homes-location-banner__content h2 {
+		font-size: 36px;
+	}
+
+	.hy-homes-location-banner__content p {
+		font-size: 14px;
+	}
+}
+
+@media (max-width: 420px) {
+	.hy-homes-search__field,
+	.hy-homes-search__field--neighborhood,
+	.hy-homes-search__field--rooms,
+	.hy-homes-search__field--move-in {
+		grid-template-columns: 1fr;
+		gap: 6px;
+	}
+}

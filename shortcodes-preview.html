@@ -1,0 +1,844 @@
+<!doctype html>
+<html lang="es">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>HY Homes Syd Panther Landing - Shortcodes</title>
+	<style>
+		:root {
+			--ink: #1f2523;
+			--muted: #64706b;
+			--soft: #eef0ec;
+			--line: #d9ddd7;
+			--green: #589464;
+			--deep: #4f5956;
+			--paper: #ffffff;
+			--code: #111816;
+		}
+
+		* {
+			box-sizing: border-box;
+		}
+
+		body {
+			margin: 0;
+			color: var(--ink);
+			background: #f7f8f5;
+			font-family: Montserrat, Inter, "Segoe UI", Arial, sans-serif;
+			line-height: 1.5;
+		}
+
+		a {
+			color: inherit;
+		}
+
+		.page {
+			width: min(1160px, calc(100% - 40px));
+			margin: 0 auto;
+		}
+
+		.hero {
+			padding: 58px 0 34px;
+			border-bottom: 1px solid var(--line);
+		}
+
+		.hero__eyebrow {
+			margin: 0 0 10px;
+			color: var(--green);
+			font-size: 13px;
+			font-weight: 800;
+			letter-spacing: 0.12em;
+			text-transform: uppercase;
+		}
+
+		.hero h1 {
+			max-width: 780px;
+			margin: 0;
+			font-size: clamp(34px, 5vw, 64px);
+			font-weight: 800;
+			line-height: 1;
+			letter-spacing: 0;
+		}
+
+		.hero p {
+			max-width: 760px;
+			margin: 18px 0 0;
+			color: var(--muted);
+			font-size: 17px;
+		}
+
+		.meta {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 10px;
+			margin-top: 24px;
+		}
+
+		.meta span {
+			display: inline-flex;
+			align-items: center;
+			min-height: 34px;
+			padding: 7px 12px;
+			border: 1px solid var(--line);
+			background: var(--paper);
+			color: var(--deep);
+			font-size: 13px;
+			font-weight: 700;
+		}
+
+		.section {
+			padding: 42px 0;
+			border-bottom: 1px solid var(--line);
+		}
+
+		.section__head {
+			display: grid;
+			grid-template-columns: minmax(0, 0.9fr) minmax(280px, 1.1fr);
+			gap: 28px;
+			align-items: start;
+			margin-bottom: 24px;
+		}
+
+		.kicker {
+			margin: 0 0 8px;
+			color: var(--green);
+			font-size: 12px;
+			font-weight: 800;
+			letter-spacing: 0.12em;
+			text-transform: uppercase;
+		}
+
+		h2 {
+			margin: 0;
+			font-size: clamp(26px, 3vw, 40px);
+			font-weight: 800;
+			line-height: 1.1;
+			letter-spacing: 0;
+		}
+
+		.description {
+			margin: 0;
+			color: var(--muted);
+			font-size: 15px;
+		}
+
+		.shortcode-box {
+			display: grid;
+			gap: 8px;
+			margin-top: 18px;
+		}
+
+		.shortcode-box label {
+			color: var(--deep);
+			font-size: 12px;
+			font-weight: 800;
+			text-transform: uppercase;
+		}
+
+		pre {
+			overflow-x: auto;
+			margin: 0;
+			padding: 14px 16px;
+			border-radius: 6px;
+			background: var(--code);
+			color: #e9f1ec;
+			font-size: 13px;
+			line-height: 1.45;
+			white-space: pre-wrap;
+			word-break: break-word;
+		}
+
+		code {
+			font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+		}
+
+		.aliases {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 8px;
+			margin-top: 12px;
+		}
+
+		.aliases code {
+			display: inline-flex;
+			padding: 7px 9px;
+			border: 1px solid var(--line);
+			background: var(--paper);
+			color: var(--deep);
+			font-size: 12px;
+		}
+
+		.preview {
+			overflow: hidden;
+			border: 1px solid var(--line);
+			background: var(--paper);
+		}
+
+		.preview__label {
+			padding: 10px 14px;
+			border-bottom: 1px solid var(--line);
+			background: #f0f2ed;
+			color: var(--deep);
+			font-size: 12px;
+			font-weight: 800;
+			letter-spacing: 0.08em;
+			text-transform: uppercase;
+		}
+
+		.search-preview {
+			padding: 18px;
+			background:
+				linear-gradient(rgba(20, 26, 24, 0.38), rgba(20, 26, 24, 0.38)),
+				linear-gradient(135deg, #707d78, #313936);
+		}
+
+		.search-bar {
+			display: grid;
+			grid-template-columns: 1.2fr 0.8fr 1.15fr auto;
+			gap: 0;
+			align-items: center;
+			min-height: 74px;
+			padding: 0 14px;
+			background: var(--deep);
+			color: #f8f8f5;
+		}
+
+		.search-field {
+			display: grid;
+			grid-template-columns: auto 1fr;
+			gap: 16px;
+			align-items: center;
+			padding: 0 18px;
+			border-right: 4px solid rgba(255, 255, 255, 0.72);
+		}
+
+		.search-field:last-of-type {
+			border-right: 0;
+		}
+
+		.search-field strong {
+			font-size: 12px;
+			letter-spacing: 0.08em;
+			text-transform: uppercase;
+			white-space: nowrap;
+		}
+
+		.search-field span {
+			color: rgba(255, 255, 255, 0.62);
+			font-size: 14px;
+			font-weight: 700;
+		}
+
+		.search-button,
+		.green-button {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			min-height: 42px;
+			padding: 10px 18px;
+			border: 0;
+			border-radius: 999px;
+			background: #f0f1ed;
+			color: var(--deep);
+			font-size: 12px;
+			font-weight: 900;
+			letter-spacing: 0.08em;
+			text-transform: uppercase;
+			white-space: nowrap;
+		}
+
+		.green-button {
+			background: var(--green);
+			color: #fff;
+		}
+
+		.results-preview,
+		.detail-preview,
+		.carousel-preview {
+			padding: 26px;
+			background: #fff;
+		}
+
+		.filter-filled {
+			display: grid;
+			grid-template-columns: 1.1fr 0.8fr 1fr auto;
+			gap: 14px;
+			align-items: center;
+			padding: 16px;
+			background: #f5f6f2;
+			border: 1px solid var(--line);
+		}
+
+		.filter-pill {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			min-height: 46px;
+			padding: 8px 12px;
+			border: 1px solid #aeb5b0;
+			background: #fff;
+			color: var(--deep);
+			font-weight: 700;
+		}
+
+		.breadcrumbs {
+			margin: 18px 0;
+			color: var(--muted);
+			font-size: 13px;
+			text-align: center;
+			text-decoration: underline;
+		}
+
+		.location-title {
+			margin: 0 0 24px;
+			color: #b8bcbc;
+			font-size: clamp(38px, 7vw, 78px);
+			font-weight: 900;
+			line-height: 1;
+			text-align: center;
+		}
+
+		.cards {
+			display: grid;
+			grid-template-columns: repeat(4, minmax(0, 1fr));
+			gap: 10px;
+		}
+
+		.property-card {
+			display: grid;
+			grid-template-rows: 150px auto 48px;
+			min-width: 0;
+			background: #ecece8;
+		}
+
+		.property-card__image {
+			position: relative;
+			background:
+				linear-gradient(135deg, rgba(0, 0, 0, 0.05), rgba(0, 0, 0, 0.2)),
+				linear-gradient(135deg, #d8d1c0, #6c7772 52%, #eff1e8);
+		}
+
+		.property-card__tag {
+			position: absolute;
+			top: 0;
+			left: 0;
+			padding: 8px 10px;
+			background: var(--deep);
+			color: #fff;
+			font-size: 11px;
+			text-transform: uppercase;
+		}
+
+		.property-card__body {
+			padding: 10px 12px;
+		}
+
+		.property-card h3 {
+			margin: 0 0 10px;
+			font-size: 13px;
+			line-height: 1.2;
+		}
+
+		.property-card__meta {
+			display: flex;
+			align-items: center;
+			gap: 8px;
+			font-size: 12px;
+		}
+
+		.price {
+			margin-left: auto;
+			padding: 5px 10px;
+			background: var(--deep);
+			color: #fff;
+			font-weight: 800;
+		}
+
+		.property-card__cta {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			background: var(--green);
+			color: #fff;
+			font-size: 13px;
+			font-weight: 900;
+			letter-spacing: 0.08em;
+			text-transform: uppercase;
+		}
+
+		.carousel-head {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			margin-bottom: 18px;
+		}
+
+		.carousel-head h3 {
+			margin: 0;
+			font-size: 22px;
+		}
+
+		.arrows {
+			display: flex;
+			gap: 28px;
+			color: var(--deep);
+			font-size: 26px;
+			font-weight: 900;
+		}
+
+		.detail-grid {
+			display: grid;
+			grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
+			gap: 24px;
+		}
+
+		.gallery {
+			position: relative;
+			min-height: 330px;
+			background:
+				linear-gradient(135deg, rgba(0, 0, 0, 0.05), rgba(0, 0, 0, 0.24)),
+				linear-gradient(135deg, #d8d1c0, #66736f 55%, #eceee8);
+		}
+
+		.gallery .property-card__tag {
+			font-size: 14px;
+		}
+
+		.gallery-price {
+			position: absolute;
+			right: 0;
+			bottom: 0;
+			padding: 18px 28px;
+			background: rgba(17, 24, 22, 0.82);
+			color: #fff;
+			font-size: 24px;
+			font-weight: 900;
+		}
+
+		.thumbs {
+			display: grid;
+			grid-template-columns: repeat(6, 1fr);
+			gap: 10px;
+			margin-top: 12px;
+		}
+
+		.thumbs span {
+			height: 58px;
+			background: #aaa4a4;
+		}
+
+		.detail-copy h3 {
+			margin: 6px 0 6px;
+			font-size: 24px;
+		}
+
+		.detail-copy p {
+			margin: 0 0 14px;
+			color: var(--muted);
+			font-size: 14px;
+		}
+
+		.rule {
+			height: 2px;
+			margin: 10px 0 16px;
+			background: #08b39c;
+		}
+
+		.whatsapp {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			min-height: 38px;
+			margin-top: 12px;
+			padding: 10px 28px;
+			border-radius: 8px;
+			background: #06ad99;
+			color: #fff;
+			font-size: 11px;
+			font-weight: 800;
+			letter-spacing: 0.06em;
+			text-transform: uppercase;
+		}
+
+		.map {
+			height: 140px;
+			margin-top: 22px;
+			background:
+				linear-gradient(90deg, rgba(255,255,255,0.34), rgba(255,255,255,0.74)),
+				repeating-linear-gradient(45deg, #e5e9ef 0 12px, #f3f5f7 12px 24px);
+			border: 1px solid var(--line);
+		}
+
+		.banner-preview {
+			position: relative;
+			min-height: 300px;
+			padding: 0;
+			background:
+				linear-gradient(90deg, rgba(0, 0, 0, 0.68), rgba(0, 0, 0, 0.2)),
+				linear-gradient(135deg, #8b4f23, #c5924e 48%, #6b341c);
+		}
+
+		.banner-copy {
+			position: absolute;
+			left: 8%;
+			bottom: 34px;
+			color: #fff;
+		}
+
+		.banner-copy h3 {
+			margin: 0 0 8px;
+			font-size: clamp(34px, 6vw, 56px);
+			font-weight: 500;
+			line-height: 1;
+			letter-spacing: 0;
+			text-transform: uppercase;
+		}
+
+		.banner-copy p {
+			max-width: 520px;
+			margin: 0 0 16px;
+			font-weight: 800;
+		}
+
+		.admin-grid {
+			display: grid;
+			grid-template-columns: repeat(3, minmax(0, 1fr));
+			gap: 12px;
+		}
+
+		.admin-box {
+			padding: 16px;
+			border: 1px solid var(--line);
+			background: var(--paper);
+		}
+
+		.admin-box h3 {
+			margin: 0 0 8px;
+			font-size: 18px;
+		}
+
+		.admin-box p {
+			margin: 0;
+			color: var(--muted);
+			font-size: 14px;
+		}
+
+		.footer {
+			padding: 34px 0 54px;
+			color: var(--muted);
+			font-size: 14px;
+		}
+
+		@media (max-width: 900px) {
+			.section__head,
+			.detail-grid,
+			.admin-grid {
+				grid-template-columns: 1fr;
+			}
+
+			.search-bar,
+			.filter-filled,
+			.cards {
+				grid-template-columns: 1fr 1fr;
+			}
+
+			.search-field {
+				border-right: 0;
+				border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+			}
+		}
+
+		@media (max-width: 620px) {
+			.page {
+				width: min(100% - 24px, 1160px);
+			}
+
+			.hero {
+				padding-top: 34px;
+			}
+
+			.search-bar,
+			.filter-filled,
+			.cards {
+				grid-template-columns: 1fr;
+			}
+
+			.results-preview,
+			.detail-preview,
+			.carousel-preview {
+				padding: 16px;
+			}
+
+			.property-card {
+				grid-template-rows: 180px auto 48px;
+			}
+
+			.thumbs {
+				grid-template-columns: repeat(3, 1fr);
+			}
+		}
+	</style>
+</head>
+<body>
+	<header class="hero">
+		<div class="page">
+			<p class="hero__eyebrow">HY Homes Syd Panther Landing</p>
+			<h1>Guia visual de shortcodes</h1>
+			<p>Documento HTML para GitHub con una previsualizacion estatica de cada elemento del plugin. Los shortcodes reales se renderizan dentro de WordPress, Elementor o WPBakery.</p>
+			<div class="meta">
+				<span>Version 1.1.0</span>
+				<span>Elementor compatible</span>
+				<span>WPBakery compatible</span>
+				<span>Developed by The Panther Soft - Vaira Maria Lujan</span>
+			</div>
+		</div>
+	</header>
+
+	<main class="page">
+		<section class="section" id="search-filter">
+			<div class="section__head">
+				<div>
+					<p class="kicker">Shortcode 01</p>
+					<h2>Property Search Filter</h2>
+				</div>
+				<div>
+					<p class="description">Buscador principal con selector de localidad, campo numerico de room type, selector de move-in date y boton para enviar la busqueda a la pagina de resultados.</p>
+					<div class="shortcode-box">
+						<label>Shortcode</label>
+						<pre><code>[hy_homes_search_filter results_url="/properties/" neighborhood_options="Waterloo &amp; Zetland|Waterloo|Eastgardens|Zetland|Rosebery|Mascot|Kingsford|Kensington" move_in_options="Immediate|Next 2 weeks|Next month"]</code></pre>
+					</div>
+					<div class="aliases">
+						<code>[panther_hy_homes_search]</code>
+					</div>
+				</div>
+			</div>
+			<div class="preview">
+				<div class="preview__label">Preview</div>
+				<div class="search-preview">
+					<div class="search-bar">
+						<div class="search-field"><strong>Neighborhood</strong><span>seleccionar</span></div>
+						<div class="search-field"><strong>Room Type</strong><span>numero</span></div>
+						<div class="search-field"><strong>Move-in Date, Search</strong><span>seleccionar</span></div>
+						<button class="search-button">Search Properties</button>
+					</div>
+				</div>
+			</div>
+		</section>
+
+		<section class="section" id="property-results">
+			<div class="section__head">
+				<div>
+					<p class="kicker">Shortcode 02</p>
+					<h2>Filtered Property Results</h2>
+				</div>
+				<div>
+					<p class="description">Pagina filtrada con el buscador ya completado, breadcrumbs con enlaces de filtros, titulo grande de localidad, cards de propiedades y paginacion.</p>
+					<div class="shortcode-box">
+						<label>Shortcode</label>
+						<pre><code>[hy_homes_property_results posts_per_page="8" results_url="/properties/"]</code></pre>
+					</div>
+					<div class="aliases">
+						<code>[panther_hy_homes_results]</code>
+					</div>
+				</div>
+			</div>
+			<div class="preview">
+				<div class="preview__label">Preview</div>
+				<div class="results-preview">
+					<div class="filter-filled">
+						<strong>Neighborhood</strong>
+						<div class="filter-pill">Waterloo &amp; Zetland <span>x</span></div>
+						<strong>Room Type</strong>
+						<div class="filter-pill">1 <span>x</span></div>
+						<strong>Move-in Date, Search</strong>
+						<div class="filter-pill">Immediate <span>x</span></div>
+						<button class="green-button">Next Search</button>
+					</div>
+					<div class="breadcrumbs">Waterloo &amp; Zetland &gt; 1 &gt; Immediate &gt; Search</div>
+					<h3 class="location-title">Waterloo &amp; Zetland</h3>
+					<div class="cards">
+						<article class="property-card">
+							<div class="property-card__image"><span class="property-card__tag">Available Now</span></div>
+							<div class="property-card__body"><h3>Modern Apartment in Zetland, Fully Furnished.</h3><div class="property-card__meta">2 | 1 <span class="price">$1,010 pw</span></div></div>
+							<div class="property-card__cta">View Details -></div>
+						</article>
+						<article class="property-card">
+							<div class="property-card__image"><span class="property-card__tag">Available Now</span></div>
+							<div class="property-card__body"><h3>Modern Apartment in Zetland, Fully Furnished.</h3><div class="property-card__meta">2 | 1 <span class="price">$1,010 pw</span></div></div>
+							<div class="property-card__cta">View Details -></div>
+						</article>
+						<article class="property-card">
+							<div class="property-card__image"><span class="property-card__tag">Available Now</span></div>
+							<div class="property-card__body"><h3>Modern Apartment in Zetland, Fully Furnished.</h3><div class="property-card__meta">2 | 1 <span class="price">$1,010 pw</span></div></div>
+							<div class="property-card__cta">View Details -></div>
+						</article>
+						<article class="property-card">
+							<div class="property-card__image"><span class="property-card__tag">Available Now</span></div>
+							<div class="property-card__body"><h3>Modern Apartment in Zetland, Fully Furnished.</h3><div class="property-card__meta">2 | 1 <span class="price">$1,010 pw</span></div></div>
+							<div class="property-card__cta">View Details -></div>
+						</article>
+					</div>
+				</div>
+			</div>
+		</section>
+
+		<section class="section" id="recent-carousel">
+			<div class="section__head">
+				<div>
+					<p class="kicker">Shortcode 03</p>
+					<h2>Recent Properties Carousel</h2>
+				</div>
+				<div>
+					<p class="description">Carrusel de propiedades recientes con cuatro columnas visibles en desktop, flechas de navegacion y las mismas cards usadas por los resultados filtrados.</p>
+					<div class="shortcode-box">
+						<label>Shortcode</label>
+						<pre><code>[hy_homes_recent_properties_carousel title="Explore Our Available Places" posts_per_page="12" columns="4"]</code></pre>
+					</div>
+					<div class="aliases">
+						<code>[panther_hy_homes_recent_carousel]</code>
+					</div>
+				</div>
+			</div>
+			<div class="preview">
+				<div class="preview__label">Preview</div>
+				<div class="carousel-preview">
+					<div class="carousel-head">
+						<h3>Explore Our Available Places</h3>
+						<div class="arrows">&lt; &gt;</div>
+					</div>
+					<div class="cards">
+						<article class="property-card">
+							<div class="property-card__image"><span class="property-card__tag">Available Now</span></div>
+							<div class="property-card__body"><h3>Modern Apartment in Zetland, Fully Furnished.</h3><div class="property-card__meta">2 | 1 <span class="price">$1,010 pw</span></div></div>
+							<div class="property-card__cta">View Details -></div>
+						</article>
+						<article class="property-card">
+							<div class="property-card__image"><span class="property-card__tag">Available Now</span></div>
+							<div class="property-card__body"><h3>Modern Apartment in Zetland, Fully Furnished.</h3><div class="property-card__meta">2 | 1 <span class="price">$1,010 pw</span></div></div>
+							<div class="property-card__cta">View Details -></div>
+						</article>
+						<article class="property-card">
+							<div class="property-card__image"><span class="property-card__tag">Available Now</span></div>
+							<div class="property-card__body"><h3>Modern Apartment in Zetland, Fully Furnished.</h3><div class="property-card__meta">2 | 1 <span class="price">$1,010 pw</span></div></div>
+							<div class="property-card__cta">View Details -></div>
+						</article>
+						<article class="property-card">
+							<div class="property-card__image"><span class="property-card__tag">Available Now</span></div>
+							<div class="property-card__body"><h3>Modern Apartment in Zetland, Fully Furnished.</h3><div class="property-card__meta">2 | 1 <span class="price">$1,010 pw</span></div></div>
+							<div class="property-card__cta">View Details -></div>
+						</article>
+					</div>
+				</div>
+			</div>
+		</section>
+
+		<section class="section" id="property-detail">
+			<div class="section__head">
+				<div>
+					<p class="kicker">Shortcode 04</p>
+					<h2>Property Detail Page</h2>
+				</div>
+				<div>
+					<p class="description">Ficha completa de una propiedad con buscador preseleccionado, breadcrumbs, galeria de imagenes/videos, precio, descripcion, boton de WhatsApp, mapa, propiedades relacionadas y banners por localidad.</p>
+					<div class="shortcode-box">
+						<label>Shortcode</label>
+						<pre><code>[hy_homes_property_detail related_per_page="4"]</code></pre>
+					</div>
+					<div class="aliases">
+						<code>[panther_hy_homes_property_detail]</code>
+					</div>
+				</div>
+			</div>
+			<div class="preview">
+				<div class="preview__label">Preview</div>
+				<div class="detail-preview">
+					<div class="detail-grid">
+						<div>
+							<div class="gallery">
+								<span class="property-card__tag">Available Now</span>
+								<span class="gallery-price">$1,010 pw</span>
+							</div>
+							<div class="thumbs"><span></span><span></span><span></span><span></span><span></span><span></span></div>
+						</div>
+						<div class="detail-copy">
+							<h3>Waterloo</h3>
+							<p>Calle xx - xxx xxxxx xx</p>
+							<div class="rule"></div>
+							<p><strong>Features:</strong></p>
+							<p>Departamento en segundo piso con ascensor o escalera. Living-comedor amplio, cocina separada, dormitorios con placard, banos completos y balcon.</p>
+							<a class="whatsapp">Inquire about this property</a>
+						</div>
+					</div>
+					<div class="map"></div>
+				</div>
+			</div>
+		</section>
+
+		<section class="section" id="random-banners">
+			<div class="section__head">
+				<div>
+					<p class="kicker">Shortcode 05</p>
+					<h2>Random Location Banners</h2>
+				</div>
+				<div>
+					<p class="description">Carrusel de banners que muestra todos los banners cargados desde el panel HY Homes Syd en orden aleatorio, sin depender de una localidad especifica.</p>
+					<div class="shortcode-box">
+						<label>Shortcode</label>
+						<pre><code>[hy_homes_random_banners limit="0" banner_button_label="EXPLORE OUR LOCATIONS" banner_button_url="https://hyhomessyd.com/#locatios"]</code></pre>
+					</div>
+					<div class="aliases">
+						<code>[panther_hy_homes_random_banners]</code>
+					</div>
+				</div>
+			</div>
+			<div class="preview">
+				<div class="preview__label">Preview</div>
+				<div class="banner-preview">
+					<div class="banner-copy">
+						<h3>Private Sauna Room</h3>
+						<p>A tranquil, beautifully crafted space to unwind, decompress, and recharge your energy every single day.</p>
+						<a class="green-button">Explore Our Locations</a>
+					</div>
+				</div>
+			</div>
+		</section>
+
+		<section class="section" id="admin">
+			<div class="section__head">
+				<div>
+					<p class="kicker">Admin Panel</p>
+					<h2>Gestion desde WordPress</h2>
+				</div>
+				<div>
+					<p class="description">El plugin agrega un panel lateral llamado HY Homes Syd para administrar propiedades, banners y carga masiva desde hojas de calculo.</p>
+					<div class="shortcode-box">
+						<label>Columnas recomendadas</label>
+						<pre><code>action,type,id,slug,title,description,neighborhood,room_type,bedrooms,bathrooms,street,address,price,price_suffix,status,move_in,detail_url,featured_image_url,gallery_media,map_embed_url,whatsapp_phone,image_url,button_url</code></pre>
+					</div>
+				</div>
+			</div>
+			<div class="admin-grid">
+				<div class="admin-box">
+					<h3>Properties</h3>
+					<p>Crear, editar, eliminar y publicar propiedades con localidad, precio, galeria, mapa, WhatsApp y datos de filtro.</p>
+				</div>
+				<div class="admin-box">
+					<h3>Location Banners</h3>
+					<p>Crear, editar y eliminar banners del carrusel, asignando cada banner a una o mas localidades.</p>
+				</div>
+				<div class="admin-box">
+					<h3>Excel / Google Sheets</h3>
+					<p>Importar CSV, XLSX o una hoja de Google publicada como CSV. Para borrar, usar action=delete con id o slug.</p>
+				</div>
+			</div>
+		</section>
+	</main>
+
+	<footer class="footer">
+		<div class="page">
+			<strong>HY Homes Syd Panther Landing</strong><br>
+			Developed by The Panther Soft - Vaira Maria Lujan.
+		</div>
+	</footer>
+</body>
+</html>
