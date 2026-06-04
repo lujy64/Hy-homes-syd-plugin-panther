@@ -100,6 +100,8 @@ action,type,id,slug,title,description,neighborhood,room_type,bedrooms,bathrooms,
 
 Use type=property for properties and type=banner for carousel banners. Leave action empty to create/update. Use action=delete with an id or slug to move an item to Trash. Google Sheets must be published or shared as a readable CSV link.
 
+Use hy-homes-syd-import-template.csv as a downloadable import template.
+
 == Changelog ==
 
 = 1.1.0 =
