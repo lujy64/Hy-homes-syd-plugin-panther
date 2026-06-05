@@ -3,7 +3,7 @@ Contributors: The Panther Soft - Vaira Maria Lujan
 Tags: real estate, landing, elementor, wpbakery, search
 Requires at least: 5.8
 Tested up to: 6.5
-Stable tag: 1.1.6
+Stable tag: 1.1.7
 License: GPLv2 or later
 
 Landing page elements for HY Homes Syd properties.
@@ -56,6 +56,7 @@ The admin panel includes:
 * Locality selection through the shared Neighborhoods taxonomy.
 * CSV/XLSX import and Google Sheets CSV import.
 * External media ZIP upload for subdomain-hosted images and videos.
+* Optional image conversion to AVIF and video conversion to WebM.
 
 It can be used as:
 
@@ -111,12 +112,20 @@ First configure:
 
 * URL base (/Base URL): the public URL of the media subdomain, for example https://media.hyhomessyd.com/.
 * Ruta del servidor (/Server path): the physical folder path for that subdomain in the hosting account.
+* Ruta de FFmpeg (/FFmpeg path): optional path used to convert videos to WebM. Leave empty when FFmpeg is available in the server PATH.
 
 Compress the local folder for each property or banner group into a ZIP and upload that ZIP. The plugin extracts allowed image/video files into the selected destination folder on the media subdomain and returns one URL per file. Copy those URLs into the property image/video fields or into the CSV columns featured_image_url, gallery_media and image_url.
+
+The upload form can convert images to AVIF and videos to WebM. Image conversion depends on the server image editor supporting AVIF. Video conversion depends on FFmpeg and may be limited by hosting execution time for very large videos. If a conversion cannot be completed, the plugin keeps the original file and reports the skipped conversion.
 
 Allowed formats: jpg, jpeg, png, webp, gif, avif, heic, heif, mp4, webm, ogg, mov and m4v.
 
 == Changelog ==
+
+= 1.1.7 =
+* Added optional AVIF conversion for uploaded images in external media ZIPs.
+* Added optional WebM conversion for uploaded videos using FFmpeg.
+* Added FFmpeg path configuration and conversion summary counts.
 
 = 1.1.6 =
 * Added an external media panel to upload ZIP files into a subdomain folder and generate ready-to-use media URLs.

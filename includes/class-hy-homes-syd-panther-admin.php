@@ -21,6 +21,7 @@ final class HY_Homes_Syd_Panther_Admin {
 	const MEDIA_UPLOAD_ACTION      = 'hy_homes_syd_media_upload';
 	const MEDIA_BASE_URL_OPTION    = 'hy_homes_syd_media_base_url';
 	const MEDIA_BASE_PATH_OPTION   = 'hy_homes_syd_media_base_path';
+	const MEDIA_FFMPEG_PATH_OPTION = 'hy_homes_syd_media_ffmpeg_path';
 	const MEDIA_RESULT_TRANSIENT   = 'hy_homes_syd_media_result_';
 
 	/**
@@ -215,6 +216,12 @@ delete,property,123,modern-apartment-in-zetland,,,,,,,,,,,,,,,,,,,,</textarea>
 								<input id="hy_homes_media_base_path" name="hy_homes_media_base_path" type="text" value="<?php echo esc_attr( $settings['base_path'] ); ?>" placeholder="/home/usuario/media.hyhomessyd.com">
 								<p class="hy-homes-admin-help"><?php esc_html_e( 'Debe ser la carpeta fisica del subdominio en el hosting.', 'hy-homes-syd-panther' ); ?></p>
 							</div>
+
+							<div class="hy-homes-admin-field">
+								<label for="hy_homes_media_ffmpeg_path"><?php esc_html_e( 'Ruta de FFmpeg (/FFmpeg path)', 'hy-homes-syd-panther' ); ?></label>
+								<input id="hy_homes_media_ffmpeg_path" name="hy_homes_media_ffmpeg_path" type="text" value="<?php echo esc_attr( $settings['ffmpeg_path'] ); ?>" placeholder="/usr/bin/ffmpeg">
+								<p class="hy-homes-admin-help"><?php esc_html_e( 'Opcional. Se usa para convertir videos a WebM. Si FFmpeg esta en el PATH del servidor, puede quedar vacio.', 'hy-homes-syd-panther' ); ?></p>
+							</div>
 						</div>
 
 						<?php submit_button( __( 'Guardar configuracion (/Save settings)', 'hy-homes-syd-panther' ) ); ?>
@@ -241,6 +248,18 @@ delete,property,123,modern-apartment-in-zetland,,,,,,,,,,,,,,,,,,,,</textarea>
 							</div>
 						</div>
 
+						<div class="hy-homes-admin-grid hy-homes-admin-grid--2">
+							<label class="hy-homes-admin-checkbox">
+								<input type="checkbox" name="hy_homes_media_convert_images" value="1" checked>
+								<span><?php esc_html_e( 'Convertir imagenes a AVIF (/Convert images to AVIF)', 'hy-homes-syd-panther' ); ?></span>
+							</label>
+
+							<label class="hy-homes-admin-checkbox">
+								<input type="checkbox" name="hy_homes_media_convert_videos" value="1" checked>
+								<span><?php esc_html_e( 'Convertir videos a WebM (/Convert videos to WebM)', 'hy-homes-syd-panther' ); ?></span>
+							</label>
+						</div>
+
 						<?php submit_button( __( 'Subir y generar URLs (/Upload and generate URLs)', 'hy-homes-syd-panther' ), 'primary' ); ?>
 					</form>
 				</div>
@@ -255,6 +274,13 @@ delete,property,123,modern-apartment-in-zetland,,,,,,,,,,,,,,,,,,,,</textarea>
 								<?php echo esc_html( sprintf( __( 'Archivos generados (/Generated files): %d', 'hy-homes-syd-panther' ), count( $result['urls'] ) ) ); ?>
 								<?php if ( ! empty( $result['skipped'] ) ) : ?>
 									<br><?php echo esc_html( sprintf( __( 'Archivos omitidos por seguridad o formato no permitido (/Skipped files): %d', 'hy-homes-syd-panther' ), absint( $result['skipped'] ) ) ); ?>
+								<?php endif; ?>
+								<?php if ( isset( $result['converted_images'] ) || isset( $result['converted_videos'] ) ) : ?>
+									<br><?php echo esc_html( sprintf( __( 'Imagenes convertidas a AVIF (/Images converted to AVIF): %d', 'hy-homes-syd-panther' ), isset( $result['converted_images'] ) ? absint( $result['converted_images'] ) : 0 ) ); ?>
+									<br><?php echo esc_html( sprintf( __( 'Videos convertidos a WebM (/Videos converted to WebM): %d', 'hy-homes-syd-panther' ), isset( $result['converted_videos'] ) ? absint( $result['converted_videos'] ) : 0 ) ); ?>
+								<?php endif; ?>
+								<?php if ( ! empty( $result['conversion_failed'] ) ) : ?>
+									<br><?php echo esc_html( sprintf( __( 'Conversiones no realizadas, se conservaron originales (/Conversions skipped, originals kept): %d', 'hy-homes-syd-panther' ), absint( $result['conversion_failed'] ) ) ); ?>
 								<?php endif; ?>
 							</p>
 						</div>
@@ -275,8 +301,9 @@ delete,property,123,modern-apartment-in-zetland,,,,,,,,,,,,,,,,,,,,</textarea>
 
 		check_admin_referer( self::MEDIA_SETTINGS_ACTION, 'hy_homes_media_settings_nonce' );
 
-		$base_url  = isset( $_POST['hy_homes_media_base_url'] ) ? esc_url_raw( wp_unslash( $_POST['hy_homes_media_base_url'] ) ) : '';
-		$base_path = isset( $_POST['hy_homes_media_base_path'] ) ? self::normalize_server_path( wp_unslash( $_POST['hy_homes_media_base_path'] ) ) : '';
+		$base_url    = isset( $_POST['hy_homes_media_base_url'] ) ? esc_url_raw( wp_unslash( $_POST['hy_homes_media_base_url'] ) ) : '';
+		$base_path   = isset( $_POST['hy_homes_media_base_path'] ) ? self::normalize_server_path( wp_unslash( $_POST['hy_homes_media_base_path'] ) ) : '';
+		$ffmpeg_path = isset( $_POST['hy_homes_media_ffmpeg_path'] ) ? self::normalize_command_path( wp_unslash( $_POST['hy_homes_media_ffmpeg_path'] ) ) : '';
 
 		if ( '' === $base_url || '' === $base_path ) {
 			self::redirect_media_with_result( array( 'error' => __( 'Complete the base URL and server path.', 'hy-homes-syd-panther' ) ) );
@@ -292,6 +319,7 @@ delete,property,123,modern-apartment-in-zetland,,,,,,,,,,,,,,,,,,,,</textarea>
 
 		update_option( self::MEDIA_BASE_URL_OPTION, trailingslashit( $base_url ) );
 		update_option( self::MEDIA_BASE_PATH_OPTION, untrailingslashit( $base_path ) );
+		update_option( self::MEDIA_FFMPEG_PATH_OPTION, $ffmpeg_path );
 
 		self::redirect_media_with_result( array( 'message' => __( 'External media settings saved.', 'hy-homes-syd-panther' ) ) );
 	}
@@ -344,7 +372,13 @@ delete,property,123,modern-apartment-in-zetland,,,,,,,,,,,,,,,,,,,,</textarea>
 			$folder = 'media-' . gmdate( 'Ymd-His' );
 		}
 
-		$result = self::extract_media_zip( $tmp_name, $settings['base_path'], $settings['base_url'], $folder );
+		$options = array(
+			'convert_images' => ! empty( $_POST['hy_homes_media_convert_images'] ),
+			'convert_videos' => ! empty( $_POST['hy_homes_media_convert_videos'] ),
+			'ffmpeg_path'    => $settings['ffmpeg_path'],
+		);
+
+		$result = self::extract_media_zip( $tmp_name, $settings['base_path'], $settings['base_url'], $folder, $options );
 
 		if ( is_wp_error( $result ) ) {
 			self::redirect_media_with_result( array( 'error' => $result->get_error_message() ) );
@@ -362,12 +396,13 @@ delete,property,123,modern-apartment-in-zetland,,,,,,,,,,,,,,,,,,,,</textarea>
 	/**
 	 * Get saved external media settings.
 	 *
-	 * @return array{base_url:string,base_path:string}
+	 * @return array{base_url:string,base_path:string,ffmpeg_path:string}
 	 */
 	private static function get_media_settings() {
 		return array(
-			'base_url'  => esc_url_raw( (string) get_option( self::MEDIA_BASE_URL_OPTION, '' ) ),
-			'base_path' => self::normalize_server_path( (string) get_option( self::MEDIA_BASE_PATH_OPTION, '' ) ),
+			'base_url'    => esc_url_raw( (string) get_option( self::MEDIA_BASE_URL_OPTION, '' ) ),
+			'base_path'   => self::normalize_server_path( (string) get_option( self::MEDIA_BASE_PATH_OPTION, '' ) ),
+			'ffmpeg_path' => self::normalize_command_path( (string) get_option( self::MEDIA_FFMPEG_PATH_OPTION, '' ) ),
 		);
 	}
 
@@ -419,6 +454,16 @@ delete,property,123,modern-apartment-in-zetland,,,,,,,,,,,,,,,,,,,,</textarea>
 	}
 
 	/**
+	 * Normalize an executable path or command name.
+	 *
+	 * @param string $path Command path.
+	 * @return string
+	 */
+	private static function normalize_command_path( $path ) {
+		return trim( sanitize_text_field( wp_normalize_path( (string) $path ) ) );
+	}
+
+	/**
 	 * Normalize a user-provided media folder path.
 	 *
 	 * @param string $path Folder path.
@@ -447,16 +492,25 @@ delete,property,123,modern-apartment-in-zetland,,,,,,,,,,,,,,,,,,,,</textarea>
 	/**
 	 * Extract a ZIP into the configured external media path.
 	 *
-	 * @param string $zip_path  Uploaded ZIP temp path.
-	 * @param string $base_path External media server path.
-	 * @param string $base_url  External media public URL.
-	 * @param string $folder    Destination folder.
-	 * @return array{urls:array<int,string>,skipped:int}|WP_Error
+	 * @param string              $zip_path  Uploaded ZIP temp path.
+	 * @param string              $base_path External media server path.
+	 * @param string              $base_url  External media public URL.
+	 * @param string              $folder  Destination folder.
+	 * @param array<string,mixed> $options Upload processing options.
+	 * @return array{urls:array<int,string>,skipped:int,converted_images:int,converted_videos:int,conversion_failed:int}|WP_Error
 	 */
-	private static function extract_media_zip( $zip_path, $base_path, $base_url, $folder ) {
+	private static function extract_media_zip( $zip_path, $base_path, $base_url, $folder, $options = array() ) {
 		$base_path = self::normalize_server_path( $base_path );
 		$base_url  = trailingslashit( esc_url_raw( $base_url ) );
 		$folder    = self::normalize_media_subdir( $folder );
+		$options   = wp_parse_args(
+			$options,
+			array(
+				'convert_images' => false,
+				'convert_videos' => false,
+				'ffmpeg_path'    => '',
+			)
+		);
 
 		if ( '' === $base_path || '' === $base_url || '' === $folder ) {
 			return new WP_Error( 'hy_homes_media_settings_missing', __( 'External media settings or destination folder are missing.', 'hy-homes-syd-panther' ) );
@@ -479,8 +533,11 @@ delete,property,123,modern-apartment-in-zetland,,,,,,,,,,,,,,,,,,,,</textarea>
 			return new WP_Error( 'hy_homes_media_zip_invalid', __( 'The ZIP file could not be opened.', 'hy-homes-syd-panther' ) );
 		}
 
-		$urls    = array();
-		$skipped = 0;
+		$urls              = array();
+		$skipped           = 0;
+		$converted_images  = 0;
+		$converted_videos  = 0;
+		$conversion_failed = 0;
 
 		for ( $index = 0; $index < $zip->numFiles; $index++ ) {
 			$entry = (string) $zip->getNameIndex( $index );
@@ -529,7 +586,31 @@ delete,property,123,modern-apartment-in-zetland,,,,,,,,,,,,,,,,,,,,</textarea>
 				continue;
 			}
 
-			$urls[] = self::media_relative_to_url( trailingslashit( $folder ) . $relative, $base_url );
+			$final_relative = $relative;
+
+			if ( ! empty( $options['convert_images'] ) && self::is_image_media_file( $relative ) && 'avif' !== strtolower( pathinfo( $relative, PATHINFO_EXTENSION ) ) ) {
+				$converted = self::convert_image_to_avif( $destination );
+
+				if ( is_wp_error( $converted ) ) {
+					$conversion_failed++;
+				} else {
+					@unlink( $destination );
+					$final_relative = self::replace_media_extension( $relative, 'avif' );
+					$converted_images++;
+				}
+			} elseif ( ! empty( $options['convert_videos'] ) && self::is_video_media_file( $relative ) && 'webm' !== strtolower( pathinfo( $relative, PATHINFO_EXTENSION ) ) ) {
+				$converted = self::convert_video_to_webm( $destination, (string) $options['ffmpeg_path'] );
+
+				if ( is_wp_error( $converted ) ) {
+					$conversion_failed++;
+				} else {
+					@unlink( $destination );
+					$final_relative = self::replace_media_extension( $relative, 'webm' );
+					$converted_videos++;
+				}
+			}
+
+			$urls[] = self::media_relative_to_url( trailingslashit( $folder ) . $final_relative, $base_url );
 		}
 
 		$zip->close();
@@ -539,8 +620,11 @@ delete,property,123,modern-apartment-in-zetland,,,,,,,,,,,,,,,,,,,,</textarea>
 		}
 
 		return array(
-			'urls'    => $urls,
-			'skipped' => $skipped,
+			'urls'              => $urls,
+			'skipped'           => $skipped,
+			'converted_images'  => $converted_images,
+			'converted_videos'  => $converted_videos,
+			'conversion_failed' => $conversion_failed,
 		);
 	}
 
@@ -577,13 +661,128 @@ delete,property,123,modern-apartment-in-zetland,,,,,,,,,,,,,,,,,,,,</textarea>
 	 * @return bool
 	 */
 	private static function is_allowed_media_file( $path ) {
+		return self::is_image_media_file( $path ) || self::is_video_media_file( $path );
+	}
+
+	/**
+	 * Check if a media filename is an allowed image.
+	 *
+	 * @param string $path Relative media path.
+	 * @return bool
+	 */
+	private static function is_image_media_file( $path ) {
 		$extension = strtolower( pathinfo( $path, PATHINFO_EXTENSION ) );
 
-		return in_array(
-			$extension,
-			array( 'jpg', 'jpeg', 'png', 'webp', 'gif', 'avif', 'heic', 'heif', 'mp4', 'webm', 'ogg', 'mov', 'm4v' ),
-			true
-		);
+		return in_array( $extension, array( 'jpg', 'jpeg', 'png', 'webp', 'gif', 'avif', 'heic', 'heif' ), true );
+	}
+
+	/**
+	 * Check if a media filename is an allowed video.
+	 *
+	 * @param string $path Relative media path.
+	 * @return bool
+	 */
+	private static function is_video_media_file( $path ) {
+		$extension = strtolower( pathinfo( $path, PATHINFO_EXTENSION ) );
+
+		return in_array( $extension, array( 'mp4', 'webm', 'ogg', 'mov', 'm4v' ), true );
+	}
+
+	/**
+	 * Convert an image to AVIF when the server supports it.
+	 *
+	 * @param string $source_path Image path.
+	 * @return string|WP_Error
+	 */
+	private static function convert_image_to_avif( $source_path ) {
+		if ( ! function_exists( 'wp_get_image_editor' ) && defined( 'ABSPATH' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/image.php';
+		}
+
+		if ( ! function_exists( 'wp_get_image_editor' ) ) {
+			return new WP_Error( 'hy_homes_media_image_editor_missing', __( 'WordPress image editor is not available.', 'hy-homes-syd-panther' ) );
+		}
+
+		$destination = self::replace_media_extension( $source_path, 'avif' );
+		$editor      = wp_get_image_editor( $source_path );
+
+		if ( is_wp_error( $editor ) ) {
+			return $editor;
+		}
+
+		if ( method_exists( $editor, 'set_quality' ) ) {
+			$editor->set_quality( 72 );
+		}
+
+		$saved = $editor->save( $destination, 'image/avif' );
+
+		if ( is_wp_error( $saved ) || ! file_exists( $destination ) || 0 === filesize( $destination ) ) {
+			if ( file_exists( $destination ) ) {
+				@unlink( $destination );
+			}
+
+			return is_wp_error( $saved ) ? $saved : new WP_Error( 'hy_homes_media_avif_failed', __( 'The image could not be converted to AVIF.', 'hy-homes-syd-panther' ) );
+		}
+
+		return $destination;
+	}
+
+	/**
+	 * Convert a video to WebM when FFmpeg is available.
+	 *
+	 * @param string $source_path Video path.
+	 * @param string $ffmpeg_path Optional FFmpeg path.
+	 * @return string|WP_Error
+	 */
+	private static function convert_video_to_webm( $source_path, $ffmpeg_path = '' ) {
+		if ( ! function_exists( 'exec' ) ) {
+			return new WP_Error( 'hy_homes_media_exec_disabled', __( 'PHP exec is disabled, so videos cannot be converted.', 'hy-homes-syd-panther' ) );
+		}
+
+		$ffmpeg      = self::resolve_ffmpeg_path( $ffmpeg_path );
+		$destination = self::replace_media_extension( $source_path, 'webm' );
+		$command     = escapeshellarg( $ffmpeg ) . ' -y -i ' . escapeshellarg( $source_path ) . ' -c:v libvpx-vp9 -b:v 0 -crf 32 -c:a libopus ' . escapeshellarg( $destination ) . ' 2>&1';
+		$output      = array();
+		$exit_code   = 0;
+
+		exec( $command, $output, $exit_code );
+
+		if ( 0 !== $exit_code || ! file_exists( $destination ) || 0 === filesize( $destination ) ) {
+			if ( file_exists( $destination ) ) {
+				@unlink( $destination );
+			}
+
+			return new WP_Error( 'hy_homes_media_webm_failed', __( 'The video could not be converted to WebM. Check the FFmpeg path and server permissions.', 'hy-homes-syd-panther' ) );
+		}
+
+		return $destination;
+	}
+
+	/**
+	 * Resolve the configured FFmpeg command.
+	 *
+	 * @param string $ffmpeg_path Optional command path.
+	 * @return string
+	 */
+	private static function resolve_ffmpeg_path( $ffmpeg_path ) {
+		$ffmpeg_path = self::normalize_command_path( $ffmpeg_path );
+
+		return '' !== $ffmpeg_path ? $ffmpeg_path : 'ffmpeg';
+	}
+
+	/**
+	 * Replace a path extension.
+	 *
+	 * @param string $path      File path.
+	 * @param string $extension New extension without dot.
+	 * @return string
+	 */
+	private static function replace_media_extension( $path, $extension ) {
+		$path_info = pathinfo( $path );
+		$dirname   = isset( $path_info['dirname'] ) && '.' !== $path_info['dirname'] ? trailingslashit( $path_info['dirname'] ) : '';
+		$filename  = isset( $path_info['filename'] ) ? $path_info['filename'] : sanitize_file_name( (string) $path );
+
+		return $dirname . $filename . '.' . ltrim( strtolower( $extension ), '.' );
 	}
 
 	/**

@@ -1258,6 +1258,25 @@
 	line-height: 1.35;
 }
 
+.wp-admin .hy-homes-admin-checkbox {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	min-height: 42px;
+	padding: 10px 12px;
+	background: var(--hy-admin-soft);
+	border: 1px solid var(--hy-admin-line);
+	border-radius: 4px;
+	color: var(--hy-admin-text);
+	font-size: 13px;
+	font-weight: 700;
+	line-height: 1.35;
+}
+
+.wp-admin .hy-homes-admin-checkbox input {
+	margin: 0;
+}
+
 .wp-admin.taxonomy-hy_property_neighborhood #col-container {
 	display: grid;
 	grid-template-columns: minmax(280px, 380px) minmax(0, 1fr);
