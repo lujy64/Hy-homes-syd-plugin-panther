@@ -3,7 +3,7 @@ Contributors: The Panther Soft - Vaira Maria Lujan
 Tags: real estate, landing, elementor, wpbakery, search
 Requires at least: 5.8
 Tested up to: 6.5
-Stable tag: 1.1.4
+Stable tag: 1.1.5
 License: GPLv2 or later
 
 Landing page elements for HY Homes Syd properties.
@@ -103,6 +103,9 @@ Use type=property for properties and type=banner for carousel banners. The avail
 Use hy-homes-syd-import-template.csv as a downloadable import template.
 
 == Changelog ==
+
+= 1.1.5 =
+* Fixed location banner carousels so only one banner is visible per slide.
 
 = 1.1.4 =
 * Added an available date field for properties.

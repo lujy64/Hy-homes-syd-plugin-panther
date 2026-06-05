@@ -1038,6 +1038,27 @@
 	padding: 0;
 }
 
+.hy-homes-location-banner .hy-homes-carousel__viewport {
+	width: 100%;
+	overflow-x: auto;
+	overflow-y: hidden;
+	scroll-snap-type: x mandatory;
+}
+
+.hy-homes-location-banner .hy-homes-carousel__track {
+	display: flex;
+	gap: 0;
+	width: 100%;
+	min-width: 100%;
+}
+
+.hy-homes-location-banner .hy-homes-carousel__slide {
+	flex: 0 0 100%;
+	width: 100%;
+	min-width: 100%;
+	scroll-snap-align: start;
+}
+
 .hy-homes-location-banner__header {
 	position: absolute;
 	z-index: 3;

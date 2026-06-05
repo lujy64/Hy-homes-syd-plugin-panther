@@ -3,7 +3,7 @@
  * Plugin Name: HY Homes Syd Panther Landing
  * Plugin URI: https://thepanthersoft.com.ar/
  * Description: Landing page elements for HY Homes Syd properties. Includes a property search filter compatible with Elementor, WPBakery and shortcodes.
- * Version: 1.1.4
+ * Version: 1.1.5
  * Author: The Panther Soft - Vaira Maria Lujan
  * Text Domain: hy-homes-syd-panther
  *
@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'HY_HOMES_SYD_PANTHER_VERSION', '1.1.4' );
+define( 'HY_HOMES_SYD_PANTHER_VERSION', '1.1.5' );
 define( 'HY_HOMES_SYD_PANTHER_FILE', __FILE__ );
 define( 'HY_HOMES_SYD_PANTHER_PATH', plugin_dir_path( __FILE__ ) );
 define( 'HY_HOMES_SYD_PANTHER_URL', plugin_dir_url( __FILE__ ) );
