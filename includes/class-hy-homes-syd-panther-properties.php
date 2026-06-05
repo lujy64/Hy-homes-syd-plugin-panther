@@ -655,7 +655,7 @@ final class HY_Homes_Syd_Panther_Properties {
 
 		$screen = get_current_screen();
 
-		if ( ! $screen || self::TAX_NEIGHBORHOOD !== $screen->taxonomy ) {
+		if ( ! $screen || ! isset( $screen->taxonomy ) || self::TAX_NEIGHBORHOOD !== $screen->taxonomy ) {
 			return $translation;
 		}
 
