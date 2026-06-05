@@ -3,7 +3,7 @@ Contributors: The Panther Soft - Vaira Maria Lujan
 Tags: real estate, landing, elementor, wpbakery, search
 Requires at least: 5.8
 Tested up to: 6.5
-Stable tag: 1.1.0
+Stable tag: 1.1.2
 License: GPLv2 or later
 
 Landing page elements for HY Homes Syd properties.
@@ -96,13 +96,20 @@ Go to HY Homes Syd > Import Excel / Sheets.
 
 Recommended columns:
 
-action,type,id,slug,title,description,neighborhood,room_type,bedrooms,bathrooms,street,address,price,price_suffix,status,move_in,detail_url,featured_image_url,gallery_media,map_embed_url,whatsapp_phone,image_url,button_url
+action,type,id,slug,title,description,neighborhood,room_type,bedrooms,bathrooms,street,address,price,availability,price_suffix,status,move_in,detail_url,featured_image_url,gallery_media,map_embed_url,whatsapp_phone,image_url,button_url
 
-Use type=property for properties and type=banner for carousel banners. Leave action empty to create/update. Use action=delete with an id or slug to move an item to Trash. Google Sheets must be published or shared as a readable CSV link.
+Use type=property for properties and type=banner for carousel banners. The availability column controls the property card label and the move-in/search filter. Leave action empty to create/update. Use action=delete with an id or slug to move an item to Trash. Google Sheets must be published or shared as a readable CSV link.
 
 Use hy-homes-syd-import-template.csv as a downloadable import template.
 
 == Changelog ==
+
+= 1.1.2 =
+* Improved admin layout for neighborhood and location banner screens.
+* Added bilingual Spanish/English labels to property, neighborhood and banner admin fields.
+
+= 1.1.1 =
+* Improved property admin form layout and field alignment.
 
 = 1.1.0 =
 * Added HY Homes Syd admin panel.

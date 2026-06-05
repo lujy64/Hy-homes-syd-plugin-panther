@@ -654,6 +654,7 @@ final class HY_Homes_Syd_Panther_Renderer {
 		$detail_url   = self::property_meta( $post_id, 'detail_url', '' );
 		$detail_url   = '' !== $detail_url ? $detail_url : get_permalink( $post_id );
 		$external_image = self::property_meta( $post_id, 'featured_image_url', '' );
+		$external_image = '' !== $external_image ? $external_image : self::get_first_gallery_image_url( $post_id );
 		$image        = get_the_post_thumbnail(
 			$post_id,
 			'large',
@@ -1036,6 +1037,30 @@ final class HY_Homes_Syd_Panther_Renderer {
 		}
 
 		return $items;
+	}
+
+	/**
+	 * Return the first image URL from the property gallery.
+	 *
+	 * @param int $post_id Property post ID.
+	 * @return string
+	 */
+	private static function get_first_gallery_image_url( $post_id ) {
+		$raw = self::property_meta( $post_id, 'gallery_media', '' );
+
+		if ( '' === $raw ) {
+			return '';
+		}
+
+		foreach ( preg_split( '/\r\n|\r|\n/', $raw ) as $line ) {
+			$url = trim( $line );
+
+			if ( '' !== $url && 'image' === self::get_media_type( $url ) ) {
+				return esc_url_raw( $url );
+			}
+		}
+
+		return '';
 	}
 
 	/**

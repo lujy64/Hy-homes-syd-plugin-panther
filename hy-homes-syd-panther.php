@@ -1,9 +1,9 @@
 <?php
 /**
  * Plugin Name: HY Homes Syd Panther Landing
- * Plugin URI: https://thepanthersoft.com/
+ * Plugin URI: https://thepanthersoft.com.ar/
  * Description: Landing page elements for HY Homes Syd properties. Includes a property search filter compatible with Elementor, WPBakery and shortcodes.
- * Version: 1.1.0
+ * Version: 1.1.2
  * Author: The Panther Soft - Vaira Maria Lujan
  * Text Domain: hy-homes-syd-panther
  *
@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'HY_HOMES_SYD_PANTHER_VERSION', '1.1.0' );
+define( 'HY_HOMES_SYD_PANTHER_VERSION', '1.1.2' );
 define( 'HY_HOMES_SYD_PANTHER_FILE', __FILE__ );
 define( 'HY_HOMES_SYD_PANTHER_PATH', plugin_dir_path( __FILE__ ) );
 define( 'HY_HOMES_SYD_PANTHER_URL', plugin_dir_url( __FILE__ ) );
@@ -60,6 +60,7 @@ final class HY_Homes_Syd_Panther_Plugin {
 		add_action( 'init', array( $this, 'register_shortcodes' ) );
 		add_action( 'wp_enqueue_scripts', array( $this, 'register_assets' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'register_assets' ) );
+		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_assets' ) );
 		add_action( 'elementor/frontend/before_register_styles', array( $this, 'register_assets' ) );
 		add_action( 'elementor/frontend/before_register_scripts', array( $this, 'register_assets' ) );
 		add_action( 'elementor/widgets/register', array( $this, 'register_elementor_widgets' ) );
@@ -99,6 +100,35 @@ final class HY_Homes_Syd_Panther_Plugin {
 		$this->register_assets();
 		wp_enqueue_style( 'hy-homes-syd-panther' );
 		wp_enqueue_script( 'hy-homes-syd-panther' );
+	}
+
+	/**
+	 * Enqueue admin styles on plugin editing screens.
+	 */
+	public function enqueue_admin_assets() {
+		$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
+
+		if ( ! $screen ) {
+			return;
+		}
+
+		$is_plugin_post_type = in_array(
+			$screen->post_type,
+			array(
+				HY_Homes_Syd_Panther_Properties::POST_TYPE,
+				HY_Homes_Syd_Panther_Properties::BANNER_POST_TYPE,
+			),
+			true
+		);
+		$is_plugin_page      = false !== strpos( (string) $screen->id, 'hy_homes_syd' );
+		$is_plugin_taxonomy  = isset( $screen->taxonomy ) && HY_Homes_Syd_Panther_Properties::TAX_NEIGHBORHOOD === $screen->taxonomy;
+
+		if ( ! $is_plugin_post_type && ! $is_plugin_page && ! $is_plugin_taxonomy ) {
+			return;
+		}
+
+		$this->register_assets();
+		wp_enqueue_style( 'hy-homes-syd-panther' );
 	}
 
 	/**

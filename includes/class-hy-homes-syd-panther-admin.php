@@ -50,8 +50,8 @@ final class HY_Homes_Syd_Panther_Admin {
 
 		add_submenu_page(
 			self::MENU_SLUG,
-			__( 'Localities', 'hy-homes-syd-panther' ),
-			__( 'Localities', 'hy-homes-syd-panther' ),
+			__( 'Localidades (/Neighborhoods)', 'hy-homes-syd-panther' ),
+			__( 'Localidades (/Neighborhoods)', 'hy-homes-syd-panther' ),
 			'manage_categories',
 			'edit-tags.php?taxonomy=' . HY_Homes_Syd_Panther_Properties::TAX_NEIGHBORHOOD . '&post_type=' . HY_Homes_Syd_Panther_Properties::POST_TYPE
 		);
@@ -74,14 +74,14 @@ final class HY_Homes_Syd_Panther_Admin {
 		<div class="wrap">
 			<h1><?php esc_html_e( 'HY Homes Syd', 'hy-homes-syd-panther' ); ?></h1>
 			<p><strong><?php esc_html_e( 'Developed by The Panther Soft - Vaira Maria Lujan', 'hy-homes-syd-panther' ); ?></strong></p>
-			<p><?php esc_html_e( 'Manage properties, location banners and spreadsheet imports from this panel.', 'hy-homes-syd-panther' ); ?></p>
+			<p><?php esc_html_e( 'Administra propiedades, banners por localidad e importaciones desde hojas de calculo (/Manage properties, location banners and spreadsheet imports).', 'hy-homes-syd-panther' ); ?></p>
 
 			<p>
-				<a class="button button-primary" href="<?php echo esc_url( admin_url( 'post-new.php?post_type=' . HY_Homes_Syd_Panther_Properties::POST_TYPE ) ); ?>"><?php esc_html_e( 'Add Property', 'hy-homes-syd-panther' ); ?></a>
-				<a class="button" href="<?php echo esc_url( admin_url( 'edit.php?post_type=' . HY_Homes_Syd_Panther_Properties::POST_TYPE ) ); ?>"><?php esc_html_e( 'View Properties', 'hy-homes-syd-panther' ); ?></a>
-				<a class="button button-primary" href="<?php echo esc_url( admin_url( 'post-new.php?post_type=' . HY_Homes_Syd_Panther_Properties::BANNER_POST_TYPE ) ); ?>"><?php esc_html_e( 'Add Banner', 'hy-homes-syd-panther' ); ?></a>
-				<a class="button" href="<?php echo esc_url( admin_url( 'edit.php?post_type=' . HY_Homes_Syd_Panther_Properties::BANNER_POST_TYPE ) ); ?>"><?php esc_html_e( 'View Banners', 'hy-homes-syd-panther' ); ?></a>
-				<a class="button" href="<?php echo esc_url( admin_url( 'admin.php?page=' . self::IMPORT_SLUG ) ); ?>"><?php esc_html_e( 'Import Excel / Sheets', 'hy-homes-syd-panther' ); ?></a>
+				<a class="button button-primary" href="<?php echo esc_url( admin_url( 'post-new.php?post_type=' . HY_Homes_Syd_Panther_Properties::POST_TYPE ) ); ?>"><?php esc_html_e( 'Agregar propiedad (/Add property)', 'hy-homes-syd-panther' ); ?></a>
+				<a class="button" href="<?php echo esc_url( admin_url( 'edit.php?post_type=' . HY_Homes_Syd_Panther_Properties::POST_TYPE ) ); ?>"><?php esc_html_e( 'Ver propiedades (/View properties)', 'hy-homes-syd-panther' ); ?></a>
+				<a class="button button-primary" href="<?php echo esc_url( admin_url( 'post-new.php?post_type=' . HY_Homes_Syd_Panther_Properties::BANNER_POST_TYPE ) ); ?>"><?php esc_html_e( 'Agregar banner (/Add banner)', 'hy-homes-syd-panther' ); ?></a>
+				<a class="button" href="<?php echo esc_url( admin_url( 'edit.php?post_type=' . HY_Homes_Syd_Panther_Properties::BANNER_POST_TYPE ) ); ?>"><?php esc_html_e( 'Ver banners (/View banners)', 'hy-homes-syd-panther' ); ?></a>
+				<a class="button" href="<?php echo esc_url( admin_url( 'admin.php?page=' . self::IMPORT_SLUG ) ); ?>"><?php esc_html_e( 'Importar Excel / Sheets (/Import Excel / Sheets)', 'hy-homes-syd-panther' ); ?></a>
 			</p>
 
 			<h2><?php esc_html_e( 'Shortcodes', 'hy-homes-syd-panther' ); ?></h2>
@@ -145,11 +145,11 @@ final class HY_Homes_Syd_Panther_Admin {
 
 			<h2><?php esc_html_e( 'Spreadsheet columns', 'hy-homes-syd-panther' ); ?></h2>
 			<p><?php esc_html_e( 'Use one row per item. The type column must be property or banner.', 'hy-homes-syd-panther' ); ?></p>
-			<textarea readonly rows="8" class="large-text code">action,type,id,slug,title,description,neighborhood,room_type,bedrooms,bathrooms,street,address,price,price_suffix,status,move_in,detail_url,featured_image_url,gallery_media,map_embed_url,whatsapp_phone,image_url,button_url
-,property,,,Modern Apartment in Zetland,Fully furnished.,Zetland,1,2,1,Calle xx,Full address,1010,pw,Available Now,Immediate,,https://example.com/card.jpg,https://example.com/gallery-1.jpg,,61400000000,,
-,banner,,,Private Sauna Room,A tranquil space to unwind.,Zetland,,,,,,,,,,,,,,,https://example.com/banner.jpg,https://hyhomessyd.com/#locatios
-delete,property,123,modern-apartment-in-zetland,,,,,,,,,,,,,,,,,,</textarea>
-			<p class="description"><?php esc_html_e( 'Accepted aliases include accion, tipo, titulo, descripcion, localidad, barrio, imagen, precio, banos, dormitorios, telefono_whatsapp and url_boton. Use action=delete or accion=eliminar with an id or slug to move an item to Trash.', 'hy-homes-syd-panther' ); ?></p>
+			<textarea readonly rows="8" class="large-text code">action,type,id,slug,title,description,neighborhood,room_type,bedrooms,bathrooms,street,address,price,availability,price_suffix,status,move_in,detail_url,featured_image_url,gallery_media,map_embed_url,whatsapp_phone,image_url,button_url
+,property,,,Modern Apartment in Zetland,Fully furnished.,Zetland,1,2,1,Calle xx,Full address,1010,Immediate,pw,,,,https://example.com/card.jpg,https://example.com/gallery-1.jpg,,61400000000,,
+,banner,,,Private Sauna Room,A tranquil space to unwind.,Zetland,,,,,,,,,,,,,,,,https://example.com/banner.jpg,https://hyhomessyd.com/#locatios
+delete,property,123,modern-apartment-in-zetland,,,,,,,,,,,,,,,,,,,</textarea>
+			<p class="description"><?php esc_html_e( 'Accepted aliases include accion, tipo, titulo, descripcion, localidad, barrio, imagen, precio, disponibilidad, banos, dormitorios, telefono_whatsapp and url_boton. Use action=delete or accion=eliminar with an id or slug to move an item to Trash.', 'hy-homes-syd-panther' ); ?></p>
 		</div>
 		<?php
 	}
@@ -735,6 +735,13 @@ delete,property,123,modern-apartment-in-zetland,,,,,,,,,,,,,,,,,,</textarea>
 	 * @param array<string,string> $row Row data.
 	 */
 	private static function update_property_meta_from_row( $post_id, $row ) {
+		$availability = self::row_value( $row, array( 'availability', 'disponibilidad' ) );
+
+		if ( '' !== $availability ) {
+			update_post_meta( $post_id, HY_Homes_Syd_Panther_Properties::META_PREFIX . 'status', self::availability_to_status_label( $availability ) );
+			update_post_meta( $post_id, HY_Homes_Syd_Panther_Properties::META_PREFIX . 'move_in', self::availability_to_filter_value( $availability ) );
+		}
+
 		$map = array(
 			'room_type'          => array( 'room_type', 'rooms', 'habitaciones', 'tipo_habitacion' ),
 			'bedrooms'           => array( 'bedrooms', 'dormitorios', 'camas' ),
@@ -743,7 +750,7 @@ delete,property,123,modern-apartment-in-zetland,,,,,,,,,,,,,,,,,,</textarea>
 			'address'            => array( 'address', 'direccion', 'full_address' ),
 			'price'              => array( 'price', 'precio' ),
 			'price_suffix'       => array( 'price_suffix', 'sufijo_precio' ),
-			'status'             => array( 'status', 'estado', 'availability', 'disponibilidad' ),
+			'status'             => array( 'status', 'estado' ),
 			'move_in'            => array( 'move_in', 'move_in_date', 'ingreso', 'fecha_ingreso' ),
 			'detail_url'         => array( 'detail_url', 'url_detalle' ),
 			'featured_image_url' => array( 'featured_image_url', 'image_url', 'card_image', 'imagen_principal', 'imagen' ),
@@ -772,6 +779,46 @@ delete,property,123,modern-apartment-in-zetland,,,,,,,,,,,,,,,,,,</textarea>
 				update_post_meta( $post_id, $meta_key, sanitize_text_field( $value ) );
 			}
 		}
+	}
+
+	/**
+	 * Convert availability value into the card label.
+	 *
+	 * @param string $availability Availability value.
+	 * @return string
+	 */
+	private static function availability_to_status_label( $availability ) {
+		$availability = trim( (string) $availability );
+
+		if ( '' === $availability ) {
+			return '';
+		}
+
+		if ( 'immediate' === strtolower( $availability ) ) {
+			return 'Available Now';
+		}
+
+		return $availability;
+	}
+
+	/**
+	 * Convert availability value into the search filter value.
+	 *
+	 * @param string $availability Availability value.
+	 * @return string
+	 */
+	private static function availability_to_filter_value( $availability ) {
+		$availability = trim( (string) $availability );
+
+		if ( '' === $availability ) {
+			return '';
+		}
+
+		if ( in_array( strtolower( $availability ), array( 'available now', 'disponible ahora' ), true ) ) {
+			return 'Immediate';
+		}
+
+		return $availability;
 	}
 
 	/**
