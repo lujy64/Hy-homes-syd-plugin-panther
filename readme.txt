@@ -3,7 +3,7 @@ Contributors: The Panther Soft - Vaira Maria Lujan
 Tags: real estate, landing, elementor, wpbakery, search
 Requires at least: 5.8
 Tested up to: 6.5
-Stable tag: 1.1.5
+Stable tag: 1.1.6
 License: GPLv2 or later
 
 Landing page elements for HY Homes Syd properties.
@@ -55,6 +55,7 @@ The admin panel includes:
 * Banner create, edit and delete flows.
 * Locality selection through the shared Neighborhoods taxonomy.
 * CSV/XLSX import and Google Sheets CSV import.
+* External media ZIP upload for subdomain-hosted images and videos.
 
 It can be used as:
 
@@ -102,7 +103,23 @@ Use type=property for properties and type=banner for carousel banners. The avail
 
 Use hy-homes-syd-import-template.csv as a downloadable import template.
 
+== External Media Upload ==
+
+Go to HY Homes Syd > Media externo (/External media).
+
+First configure:
+
+* URL base (/Base URL): the public URL of the media subdomain, for example https://media.hyhomessyd.com/.
+* Ruta del servidor (/Server path): the physical folder path for that subdomain in the hosting account.
+
+Compress the local folder for each property or banner group into a ZIP and upload that ZIP. The plugin extracts allowed image/video files into the selected destination folder on the media subdomain and returns one URL per file. Copy those URLs into the property image/video fields or into the CSV columns featured_image_url, gallery_media and image_url.
+
+Allowed formats: jpg, jpeg, png, webp, gif, avif, heic, heif, mp4, webm, ogg, mov and m4v.
+
 == Changelog ==
+
+= 1.1.6 =
+* Added an external media panel to upload ZIP files into a subdomain folder and generate ready-to-use media URLs.
 
 = 1.1.5 =
 * Fixed location banner carousels so only one banner is visible per slide.

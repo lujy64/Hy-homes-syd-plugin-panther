@@ -13,9 +13,15 @@ if ( ! defined( 'ABSPATH' ) ) {
  * WordPress admin panel for HY Homes Syd content.
  */
 final class HY_Homes_Syd_Panther_Admin {
-	const MENU_SLUG   = 'hy_homes_syd';
-	const IMPORT_SLUG = 'hy_homes_syd_import';
-	const IMPORT_ACTION = 'hy_homes_syd_import';
+	const MENU_SLUG                = 'hy_homes_syd';
+	const IMPORT_SLUG              = 'hy_homes_syd_import';
+	const MEDIA_SLUG               = 'hy_homes_syd_media';
+	const IMPORT_ACTION            = 'hy_homes_syd_import';
+	const MEDIA_SETTINGS_ACTION    = 'hy_homes_syd_media_settings';
+	const MEDIA_UPLOAD_ACTION      = 'hy_homes_syd_media_upload';
+	const MEDIA_BASE_URL_OPTION    = 'hy_homes_syd_media_base_url';
+	const MEDIA_BASE_PATH_OPTION   = 'hy_homes_syd_media_base_path';
+	const MEDIA_RESULT_TRANSIENT   = 'hy_homes_syd_media_result_';
 
 	/**
 	 * Register hooks.
@@ -23,6 +29,8 @@ final class HY_Homes_Syd_Panther_Admin {
 	public static function init() {
 		add_action( 'admin_menu', array( __CLASS__, 'register_menu' ), 5 );
 		add_action( 'admin_post_' . self::IMPORT_ACTION, array( __CLASS__, 'handle_import' ) );
+		add_action( 'admin_post_' . self::MEDIA_SETTINGS_ACTION, array( __CLASS__, 'handle_media_settings' ) );
+		add_action( 'admin_post_' . self::MEDIA_UPLOAD_ACTION, array( __CLASS__, 'handle_media_upload' ) );
 	}
 
 	/**
@@ -64,6 +72,15 @@ final class HY_Homes_Syd_Panther_Admin {
 			self::IMPORT_SLUG,
 			array( __CLASS__, 'render_import_page' )
 		);
+
+		add_submenu_page(
+			self::MENU_SLUG,
+			__( 'Media externo (/External media)', 'hy-homes-syd-panther' ),
+			__( 'Media externo (/External media)', 'hy-homes-syd-panther' ),
+			'manage_options',
+			self::MEDIA_SLUG,
+			array( __CLASS__, 'render_media_page' )
+		);
 	}
 
 	/**
@@ -82,6 +99,9 @@ final class HY_Homes_Syd_Panther_Admin {
 				<a class="button button-primary" href="<?php echo esc_url( admin_url( 'post-new.php?post_type=' . HY_Homes_Syd_Panther_Properties::BANNER_POST_TYPE ) ); ?>"><?php esc_html_e( 'Agregar banner (/Add banner)', 'hy-homes-syd-panther' ); ?></a>
 				<a class="button" href="<?php echo esc_url( admin_url( 'edit.php?post_type=' . HY_Homes_Syd_Panther_Properties::BANNER_POST_TYPE ) ); ?>"><?php esc_html_e( 'Ver banners (/View banners)', 'hy-homes-syd-panther' ); ?></a>
 				<a class="button" href="<?php echo esc_url( admin_url( 'admin.php?page=' . self::IMPORT_SLUG ) ); ?>"><?php esc_html_e( 'Importar Excel / Sheets (/Import Excel / Sheets)', 'hy-homes-syd-panther' ); ?></a>
+				<?php if ( current_user_can( 'manage_options' ) ) : ?>
+					<a class="button" href="<?php echo esc_url( admin_url( 'admin.php?page=' . self::MEDIA_SLUG ) ); ?>"><?php esc_html_e( 'Media externo (/External media)', 'hy-homes-syd-panther' ); ?></a>
+				<?php endif; ?>
 			</p>
 
 			<h2><?php esc_html_e( 'Shortcodes', 'hy-homes-syd-panther' ); ?></h2>
@@ -152,6 +172,457 @@ delete,property,123,modern-apartment-in-zetland,,,,,,,,,,,,,,,,,,,,</textarea>
 			<p class="description"><?php esc_html_e( 'Accepted aliases include accion, tipo, titulo, descripcion, localidad, barrio, imagen, precio, fecha_disponible, disponibilidad, banos, dormitorios, telefono_whatsapp and url_boton. Availability date accepts YYYY-MM-DD and automatically calculates the card label/search filter. Use action=delete or accion=eliminar with an id or slug to move an item to Trash.', 'hy-homes-syd-panther' ); ?></p>
 		</div>
 		<?php
+	}
+
+	/**
+	 * Render external media upload page.
+	 */
+	public static function render_media_page() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'You do not have permission to manage HY Homes media.', 'hy-homes-syd-panther' ) );
+		}
+
+		$settings = self::get_media_settings();
+		$result   = self::get_media_result();
+		?>
+		<div class="wrap">
+			<h1><?php esc_html_e( 'Media externo (/External media)', 'hy-homes-syd-panther' ); ?></h1>
+			<p><strong><?php esc_html_e( 'Developed by The Panther Soft - Vaira Maria Lujan', 'hy-homes-syd-panther' ); ?></strong></p>
+			<p><?php esc_html_e( 'Subi un ZIP con imagenes y videos al subdominio de media. El plugin descomprime el ZIP y genera las URLs listas para usar en propiedades y banners.', 'hy-homes-syd-panther' ); ?></p>
+
+			<?php if ( ! empty( $result['message'] ) ) : ?>
+				<div class="notice <?php echo ! empty( $result['error'] ) ? 'notice-error' : 'notice-success'; ?> is-dismissible">
+					<p><?php echo esc_html( $result['message'] ); ?></p>
+				</div>
+			<?php endif; ?>
+
+			<div class="hy-homes-admin-fields">
+				<div class="hy-homes-admin-section">
+					<h3><?php esc_html_e( 'Configuracion del subdominio (/Subdomain settings)', 'hy-homes-syd-panther' ); ?></h3>
+					<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+						<input type="hidden" name="action" value="<?php echo esc_attr( self::MEDIA_SETTINGS_ACTION ); ?>">
+						<?php wp_nonce_field( self::MEDIA_SETTINGS_ACTION, 'hy_homes_media_settings_nonce' ); ?>
+
+						<div class="hy-homes-admin-grid hy-homes-admin-grid--2">
+							<div class="hy-homes-admin-field">
+								<label for="hy_homes_media_base_url"><?php esc_html_e( 'URL base (/Base URL)', 'hy-homes-syd-panther' ); ?></label>
+								<input id="hy_homes_media_base_url" name="hy_homes_media_base_url" type="url" value="<?php echo esc_attr( $settings['base_url'] ); ?>" placeholder="https://media.hyhomessyd.com/">
+								<p class="hy-homes-admin-help"><?php esc_html_e( 'Debe ser la URL publica del subdominio donde se veran los archivos.', 'hy-homes-syd-panther' ); ?></p>
+							</div>
+
+							<div class="hy-homes-admin-field">
+								<label for="hy_homes_media_base_path"><?php esc_html_e( 'Ruta del servidor (/Server path)', 'hy-homes-syd-panther' ); ?></label>
+								<input id="hy_homes_media_base_path" name="hy_homes_media_base_path" type="text" value="<?php echo esc_attr( $settings['base_path'] ); ?>" placeholder="/home/usuario/media.hyhomessyd.com">
+								<p class="hy-homes-admin-help"><?php esc_html_e( 'Debe ser la carpeta fisica del subdominio en el hosting.', 'hy-homes-syd-panther' ); ?></p>
+							</div>
+						</div>
+
+						<?php submit_button( __( 'Guardar configuracion (/Save settings)', 'hy-homes-syd-panther' ) ); ?>
+					</form>
+				</div>
+
+				<div class="hy-homes-admin-section">
+					<h3><?php esc_html_e( 'Subir ZIP de una propiedad (/Upload property ZIP)', 'hy-homes-syd-panther' ); ?></h3>
+					<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" enctype="multipart/form-data">
+						<input type="hidden" name="action" value="<?php echo esc_attr( self::MEDIA_UPLOAD_ACTION ); ?>">
+						<?php wp_nonce_field( self::MEDIA_UPLOAD_ACTION, 'hy_homes_media_upload_nonce' ); ?>
+
+						<div class="hy-homes-admin-grid hy-homes-admin-grid--2">
+							<div class="hy-homes-admin-field">
+								<label for="hy_homes_media_folder"><?php esc_html_e( 'Carpeta destino (/Destination folder)', 'hy-homes-syd-panther' ); ?></label>
+								<input id="hy_homes_media_folder" name="hy_homes_media_folder" type="text" placeholder="zetland/modern-apartment">
+								<p class="hy-homes-admin-help"><?php esc_html_e( 'Ejemplo: zetland/modern-apartment. Si queda vacio se usa el nombre del ZIP.', 'hy-homes-syd-panther' ); ?></p>
+							</div>
+
+							<div class="hy-homes-admin-field">
+								<label for="hy_homes_media_zip"><?php esc_html_e( 'Archivo ZIP (/ZIP file)', 'hy-homes-syd-panther' ); ?></label>
+								<input id="hy_homes_media_zip" name="hy_homes_media_zip" type="file" accept=".zip,application/zip">
+								<p class="hy-homes-admin-help"><?php esc_html_e( 'Acepta imagenes jpg, jpeg, png, webp, gif, avif, heic, heif y videos mp4, webm, ogg, mov, m4v.', 'hy-homes-syd-panther' ); ?></p>
+							</div>
+						</div>
+
+						<?php submit_button( __( 'Subir y generar URLs (/Upload and generate URLs)', 'hy-homes-syd-panther' ), 'primary' ); ?>
+					</form>
+				</div>
+
+				<?php if ( ! empty( $result['urls'] ) && is_array( $result['urls'] ) ) : ?>
+					<div class="hy-homes-admin-section">
+						<h3><?php esc_html_e( 'URLs generadas (/Generated URLs)', 'hy-homes-syd-panther' ); ?></h3>
+						<div class="hy-homes-admin-field">
+							<label for="hy_homes_media_generated_urls"><?php esc_html_e( 'Copiar para URLs de imagenes y videos (/Copy for image and video URLs)', 'hy-homes-syd-panther' ); ?></label>
+							<textarea id="hy_homes_media_generated_urls" rows="10" readonly><?php echo esc_textarea( implode( "\n", $result['urls'] ) ); ?></textarea>
+							<p class="hy-homes-admin-help">
+								<?php echo esc_html( sprintf( __( 'Archivos generados (/Generated files): %d', 'hy-homes-syd-panther' ), count( $result['urls'] ) ) ); ?>
+								<?php if ( ! empty( $result['skipped'] ) ) : ?>
+									<br><?php echo esc_html( sprintf( __( 'Archivos omitidos por seguridad o formato no permitido (/Skipped files): %d', 'hy-homes-syd-panther' ), absint( $result['skipped'] ) ) ); ?>
+								<?php endif; ?>
+							</p>
+						</div>
+					</div>
+				<?php endif; ?>
+			</div>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Save external media settings.
+	 */
+	public static function handle_media_settings() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'You do not have permission to manage HY Homes media.', 'hy-homes-syd-panther' ) );
+		}
+
+		check_admin_referer( self::MEDIA_SETTINGS_ACTION, 'hy_homes_media_settings_nonce' );
+
+		$base_url  = isset( $_POST['hy_homes_media_base_url'] ) ? esc_url_raw( wp_unslash( $_POST['hy_homes_media_base_url'] ) ) : '';
+		$base_path = isset( $_POST['hy_homes_media_base_path'] ) ? self::normalize_server_path( wp_unslash( $_POST['hy_homes_media_base_path'] ) ) : '';
+
+		if ( '' === $base_url || '' === $base_path ) {
+			self::redirect_media_with_result( array( 'error' => __( 'Complete the base URL and server path.', 'hy-homes-syd-panther' ) ) );
+		}
+
+		if ( ! wp_mkdir_p( $base_path ) || ! is_dir( $base_path ) ) {
+			self::redirect_media_with_result( array( 'error' => __( 'The server path could not be created or found.', 'hy-homes-syd-panther' ) ) );
+		}
+
+		if ( ! wp_is_writable( $base_path ) ) {
+			self::redirect_media_with_result( array( 'error' => __( 'The server path is not writable.', 'hy-homes-syd-panther' ) ) );
+		}
+
+		update_option( self::MEDIA_BASE_URL_OPTION, trailingslashit( $base_url ) );
+		update_option( self::MEDIA_BASE_PATH_OPTION, untrailingslashit( $base_path ) );
+
+		self::redirect_media_with_result( array( 'message' => __( 'External media settings saved.', 'hy-homes-syd-panther' ) ) );
+	}
+
+	/**
+	 * Handle ZIP upload to the external media directory.
+	 */
+	public static function handle_media_upload() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'You do not have permission to upload HY Homes media.', 'hy-homes-syd-panther' ) );
+		}
+
+		check_admin_referer( self::MEDIA_UPLOAD_ACTION, 'hy_homes_media_upload_nonce' );
+
+		$settings = self::get_media_settings();
+
+		if ( '' === $settings['base_url'] || '' === $settings['base_path'] ) {
+			self::redirect_media_with_result( array( 'error' => __( 'Save the external media settings before uploading a ZIP.', 'hy-homes-syd-panther' ) ) );
+		}
+
+		if ( ! class_exists( 'ZipArchive' ) ) {
+			self::redirect_media_with_result( array( 'error' => __( 'This server cannot extract ZIP files because ZipArchive is not enabled.', 'hy-homes-syd-panther' ) ) );
+		}
+
+		if ( ! isset( $_FILES['hy_homes_media_zip'] ) || UPLOAD_ERR_NO_FILE === (int) $_FILES['hy_homes_media_zip']['error'] ) {
+			self::redirect_media_with_result( array( 'error' => __( 'Select a ZIP file to upload.', 'hy-homes-syd-panther' ) ) );
+		}
+
+		$file = $_FILES['hy_homes_media_zip'];
+
+		if ( ! isset( $file['error'] ) || UPLOAD_ERR_OK !== (int) $file['error'] ) {
+			self::redirect_media_with_result( array( 'error' => __( 'The uploaded ZIP could not be read.', 'hy-homes-syd-panther' ) ) );
+		}
+
+		$name      = isset( $file['name'] ) ? sanitize_file_name( wp_unslash( $file['name'] ) ) : '';
+		$tmp_name  = isset( $file['tmp_name'] ) ? (string) $file['tmp_name'] : '';
+		$extension = strtolower( pathinfo( $name, PATHINFO_EXTENSION ) );
+
+		if ( 'zip' !== $extension || ! is_uploaded_file( $tmp_name ) ) {
+			self::redirect_media_with_result( array( 'error' => __( 'Upload a valid .zip file.', 'hy-homes-syd-panther' ) ) );
+		}
+
+		$folder = isset( $_POST['hy_homes_media_folder'] ) ? self::normalize_media_subdir( wp_unslash( $_POST['hy_homes_media_folder'] ) ) : '';
+
+		if ( '' === $folder ) {
+			$folder = self::normalize_media_subdir( pathinfo( $name, PATHINFO_FILENAME ) );
+		}
+
+		if ( '' === $folder ) {
+			$folder = 'media-' . gmdate( 'Ymd-His' );
+		}
+
+		$result = self::extract_media_zip( $tmp_name, $settings['base_path'], $settings['base_url'], $folder );
+
+		if ( is_wp_error( $result ) ) {
+			self::redirect_media_with_result( array( 'error' => $result->get_error_message() ) );
+		}
+
+		$result['message'] = sprintf(
+			/* translators: %d: generated files. */
+			__( 'ZIP extracted successfully. Generated URLs: %d.', 'hy-homes-syd-panther' ),
+			count( $result['urls'] )
+		);
+
+		self::redirect_media_with_result( $result );
+	}
+
+	/**
+	 * Get saved external media settings.
+	 *
+	 * @return array{base_url:string,base_path:string}
+	 */
+	private static function get_media_settings() {
+		return array(
+			'base_url'  => esc_url_raw( (string) get_option( self::MEDIA_BASE_URL_OPTION, '' ) ),
+			'base_path' => self::normalize_server_path( (string) get_option( self::MEDIA_BASE_PATH_OPTION, '' ) ),
+		);
+	}
+
+	/**
+	 * Get the external media result for the current admin user.
+	 *
+	 * @return array<string,mixed>
+	 */
+	private static function get_media_result() {
+		$key    = self::MEDIA_RESULT_TRANSIENT . get_current_user_id();
+		$result = get_transient( $key );
+
+		if ( false === $result || ! is_array( $result ) ) {
+			return array();
+		}
+
+		delete_transient( $key );
+
+		if ( ! empty( $result['error'] ) && empty( $result['message'] ) ) {
+			$result['message'] = wp_strip_all_tags( (string) $result['error'] );
+		}
+
+		return $result;
+	}
+
+	/**
+	 * Redirect back to the external media page with a result notice.
+	 *
+	 * @param array<string,mixed> $result Upload result.
+	 */
+	private static function redirect_media_with_result( $result ) {
+		if ( ! empty( $result['error'] ) && empty( $result['message'] ) ) {
+			$result['message'] = wp_strip_all_tags( (string) $result['error'] );
+		}
+
+		set_transient( self::MEDIA_RESULT_TRANSIENT . get_current_user_id(), $result, 10 * MINUTE_IN_SECONDS );
+		wp_safe_redirect( admin_url( 'admin.php?page=' . self::MEDIA_SLUG ) );
+		exit;
+	}
+
+	/**
+	 * Normalize a server path from the settings form.
+	 *
+	 * @param string $path Server path.
+	 * @return string
+	 */
+	private static function normalize_server_path( $path ) {
+		return untrailingslashit( wp_normalize_path( sanitize_text_field( (string) $path ) ) );
+	}
+
+	/**
+	 * Normalize a user-provided media folder path.
+	 *
+	 * @param string $path Folder path.
+	 * @return string
+	 */
+	private static function normalize_media_subdir( $path ) {
+		$path  = str_replace( '\\', '/', sanitize_text_field( (string) $path ) );
+		$parts = array_filter( array_map( 'trim', explode( '/', $path ) ) );
+		$clean = array();
+
+		foreach ( $parts as $part ) {
+			if ( '.' === $part || '..' === $part ) {
+				continue;
+			}
+
+			$part = sanitize_title( $part );
+
+			if ( '' !== $part ) {
+				$clean[] = $part;
+			}
+		}
+
+		return implode( '/', $clean );
+	}
+
+	/**
+	 * Extract a ZIP into the configured external media path.
+	 *
+	 * @param string $zip_path  Uploaded ZIP temp path.
+	 * @param string $base_path External media server path.
+	 * @param string $base_url  External media public URL.
+	 * @param string $folder    Destination folder.
+	 * @return array{urls:array<int,string>,skipped:int}|WP_Error
+	 */
+	private static function extract_media_zip( $zip_path, $base_path, $base_url, $folder ) {
+		$base_path = self::normalize_server_path( $base_path );
+		$base_url  = trailingslashit( esc_url_raw( $base_url ) );
+		$folder    = self::normalize_media_subdir( $folder );
+
+		if ( '' === $base_path || '' === $base_url || '' === $folder ) {
+			return new WP_Error( 'hy_homes_media_settings_missing', __( 'External media settings or destination folder are missing.', 'hy-homes-syd-panther' ) );
+		}
+
+		if ( ! wp_mkdir_p( $base_path ) || ! is_dir( $base_path ) || ! wp_is_writable( $base_path ) ) {
+			return new WP_Error( 'hy_homes_media_base_unwritable', __( 'The configured external media folder is not writable.', 'hy-homes-syd-panther' ) );
+		}
+
+		$target_dir = trailingslashit( $base_path ) . $folder;
+
+		if ( ! wp_mkdir_p( $target_dir ) || ! is_dir( $target_dir ) || ! self::path_inside_directory( $target_dir, $base_path ) ) {
+			return new WP_Error( 'hy_homes_media_target_invalid', __( 'The destination folder could not be created safely.', 'hy-homes-syd-panther' ) );
+		}
+
+		$zip    = new ZipArchive();
+		$opened = $zip->open( $zip_path );
+
+		if ( true !== $opened ) {
+			return new WP_Error( 'hy_homes_media_zip_invalid', __( 'The ZIP file could not be opened.', 'hy-homes-syd-panther' ) );
+		}
+
+		$urls    = array();
+		$skipped = 0;
+
+		for ( $index = 0; $index < $zip->numFiles; $index++ ) {
+			$entry = (string) $zip->getNameIndex( $index );
+
+			if ( '' === $entry || '/' === substr( str_replace( '\\', '/', $entry ), -1 ) ) {
+				continue;
+			}
+
+			$relative = self::sanitize_zip_entry_name( $entry );
+
+			if ( '' === $relative || ! self::is_allowed_media_file( $relative ) ) {
+				$skipped++;
+				continue;
+			}
+
+			$destination     = trailingslashit( $target_dir ) . $relative;
+			$destination_dir = dirname( $destination );
+
+			if ( ! wp_mkdir_p( $destination_dir ) || ! self::path_inside_directory( $destination, $target_dir ) ) {
+				$skipped++;
+				continue;
+			}
+
+			$source = $zip->getStream( $entry );
+
+			if ( false === $source ) {
+				$skipped++;
+				continue;
+			}
+
+			$target = @fopen( $destination, 'wb' );
+
+			if ( false === $target ) {
+				fclose( $source );
+				$skipped++;
+				continue;
+			}
+
+			$copied = stream_copy_to_stream( $source, $target );
+			fclose( $source );
+			fclose( $target );
+
+			if ( false === $copied ) {
+				@unlink( $destination );
+				$skipped++;
+				continue;
+			}
+
+			$urls[] = self::media_relative_to_url( trailingslashit( $folder ) . $relative, $base_url );
+		}
+
+		$zip->close();
+
+		if ( empty( $urls ) ) {
+			return new WP_Error( 'hy_homes_media_zip_empty', __( 'No valid media files were found inside the ZIP.', 'hy-homes-syd-panther' ) );
+		}
+
+		return array(
+			'urls'    => $urls,
+			'skipped' => $skipped,
+		);
+	}
+
+	/**
+	 * Sanitize one ZIP entry path while preserving safe subfolders.
+	 *
+	 * @param string $entry ZIP entry name.
+	 * @return string
+	 */
+	private static function sanitize_zip_entry_name( $entry ) {
+		$entry = str_replace( '\\', '/', (string) $entry );
+		$parts = array_filter( array_map( 'trim', explode( '/', $entry ) ) );
+		$clean = array();
+
+		foreach ( $parts as $part ) {
+			if ( '.' === $part || '..' === $part ) {
+				return '';
+			}
+
+			$part = sanitize_file_name( $part );
+
+			if ( '' !== $part ) {
+				$clean[] = $part;
+			}
+		}
+
+		return implode( '/', $clean );
+	}
+
+	/**
+	 * Check if a media filename is allowed for public use.
+	 *
+	 * @param string $path Relative media path.
+	 * @return bool
+	 */
+	private static function is_allowed_media_file( $path ) {
+		$extension = strtolower( pathinfo( $path, PATHINFO_EXTENSION ) );
+
+		return in_array(
+			$extension,
+			array( 'jpg', 'jpeg', 'png', 'webp', 'gif', 'avif', 'heic', 'heif', 'mp4', 'webm', 'ogg', 'mov', 'm4v' ),
+			true
+		);
+	}
+
+	/**
+	 * Make sure a path resolves inside a base directory.
+	 *
+	 * @param string $path Path to check.
+	 * @param string $base Base directory.
+	 * @return bool
+	 */
+	private static function path_inside_directory( $path, $base ) {
+		$base_real = realpath( $base );
+
+		if ( false === $base_real ) {
+			return false;
+		}
+
+		$path_real = file_exists( $path ) ? realpath( $path ) : realpath( dirname( $path ) );
+
+		if ( false === $path_real ) {
+			return false;
+		}
+
+		$base_real = untrailingslashit( wp_normalize_path( $base_real ) );
+		$path_real = untrailingslashit( wp_normalize_path( $path_real ) );
+
+		return $path_real === $base_real || 0 === strpos( trailingslashit( $path_real ), trailingslashit( $base_real ) );
+	}
+
+	/**
+	 * Convert a relative media path to its public URL.
+	 *
+	 * @param string $relative Relative media path.
+	 * @param string $base_url External media public URL.
+	 * @return string
+	 */
+	private static function media_relative_to_url( $relative, $base_url ) {
+		$parts = array_map( 'rawurlencode', explode( '/', str_replace( '\\', '/', $relative ) ) );
+
+		return trailingslashit( $base_url ) . implode( '/', $parts );
 	}
 
 	/**
