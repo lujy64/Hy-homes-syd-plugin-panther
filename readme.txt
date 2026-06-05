@@ -3,7 +3,7 @@ Contributors: The Panther Soft - Vaira Maria Lujan
 Tags: real estate, landing, elementor, wpbakery, search
 Requires at least: 5.8
 Tested up to: 6.5
-Stable tag: 1.1.2
+Stable tag: 1.1.3
 License: GPLv2 or later
 
 Landing page elements for HY Homes Syd properties.
@@ -76,7 +76,7 @@ It can be used as:
 
 == Shortcode Example ==
 
-[hy_homes_search_filter results_url="/properties/" neighborhood_options="Waterloo & Zetland|Waterloo|Eastgardens|Zetland|Rosebery|Mascot|Kingsford|Kensington" move_in_options="Immediate|Next 2 weeks|Next month"]
+[hy_homes_search_filter results_url="/properties/" neighborhood_source="auto" move_in_options="Immediate|Next 2 weeks|Next month"]
 
 [hy_homes_property_results posts_per_page="8"]
 
@@ -103,6 +103,10 @@ Use type=property for properties and type=banner for carousel banners. The avail
 Use hy-homes-syd-import-template.csv as a downloadable import template.
 
 == Changelog ==
+
+= 1.1.3 =
+* Added an Auto/Manual neighborhood source option to Elementor and WPBakery search elements.
+* Search filter now defaults to neighborhoods created in HY Homes Syd > Localidades.
 
 = 1.1.2 =
 * Improved admin layout for neighborhood and location banner screens.

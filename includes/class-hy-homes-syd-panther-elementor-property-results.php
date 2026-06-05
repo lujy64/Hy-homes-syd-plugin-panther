@@ -92,12 +92,29 @@ final class HY_Homes_Syd_Panther_Elementor_Property_Results extends \Elementor\W
 		);
 
 		$this->add_control(
+			'neighborhood_source',
+			array(
+				'label'       => __( 'Neighborhood source', 'hy-homes-syd-panther' ),
+				'type'        => \Elementor\Controls_Manager::SELECT,
+				'default'     => 'auto',
+				'options'     => array(
+					'auto'   => __( 'Auto from Localidades', 'hy-homes-syd-panther' ),
+					'manual' => __( 'Manual list', 'hy-homes-syd-panther' ),
+				),
+				'description' => __( 'Auto reads the neighborhoods created in HY Homes Syd > Localidades.', 'hy-homes-syd-panther' ),
+			)
+		);
+
+		$this->add_control(
 			'neighborhood_options',
 			array(
 				'label'       => __( 'Neighborhood options', 'hy-homes-syd-panther' ),
 				'type'        => \Elementor\Controls_Manager::TEXTAREA,
 				'default'     => 'auto',
 				'description' => __( 'Use auto to read property neighborhoods, or separate custom options with pipes.', 'hy-homes-syd-panther' ),
+				'condition'   => array(
+					'neighborhood_source' => 'manual',
+				),
 			)
 		);
 
@@ -134,11 +151,15 @@ final class HY_Homes_Syd_Panther_Elementor_Property_Results extends \Elementor\W
 			$results_url = $settings['results_url']['url'];
 		}
 
+		$neighborhood_source  = isset( $settings['neighborhood_source'] ) ? $settings['neighborhood_source'] : 'auto';
+		$neighborhood_options = isset( $settings['neighborhood_options'] ) ? $settings['neighborhood_options'] : 'auto';
+
 		echo HY_Homes_Syd_Panther_Plugin::instance()->render_property_results(
 			array(
 				'results_url'          => $results_url,
 				'posts_per_page'       => $settings['posts_per_page'],
-				'neighborhood_options' => $settings['neighborhood_options'],
+				'neighborhood_source'  => $neighborhood_source,
+				'neighborhood_options' => $neighborhood_options,
 				'move_in_options'      => $settings['move_in_options'],
 				'search_label'         => $settings['search_label'],
 			)

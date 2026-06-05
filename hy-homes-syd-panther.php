@@ -3,7 +3,7 @@
  * Plugin Name: HY Homes Syd Panther Landing
  * Plugin URI: https://thepanthersoft.com.ar/
  * Description: Landing page elements for HY Homes Syd properties. Includes a property search filter compatible with Elementor, WPBakery and shortcodes.
- * Version: 1.1.2
+ * Version: 1.1.3
  * Author: The Panther Soft - Vaira Maria Lujan
  * Text Domain: hy-homes-syd-panther
  *
@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'HY_HOMES_SYD_PANTHER_VERSION', '1.1.2' );
+define( 'HY_HOMES_SYD_PANTHER_VERSION', '1.1.3' );
 define( 'HY_HOMES_SYD_PANTHER_FILE', __FILE__ );
 define( 'HY_HOMES_SYD_PANTHER_PATH', plugin_dir_path( __FILE__ ) );
 define( 'HY_HOMES_SYD_PANTHER_URL', plugin_dir_url( __FILE__ ) );
@@ -361,10 +361,25 @@ final class HY_Homes_Syd_Panther_Plugin {
 						'value'      => 'NEIGHBORHOOD',
 					),
 					array(
+						'type'        => 'dropdown',
+						'heading'     => __( 'Neighborhood source', 'hy-homes-syd-panther' ),
+						'param_name'  => 'neighborhood_source',
+						'value'       => array(
+							__( 'Auto from Localidades', 'hy-homes-syd-panther' ) => 'auto',
+							__( 'Manual list', 'hy-homes-syd-panther' ) => 'manual',
+						),
+						'std'         => 'auto',
+						'description' => __( 'Auto reads the neighborhoods created in HY Homes Syd > Localidades.', 'hy-homes-syd-panther' ),
+					),
+					array(
 						'type'       => 'textarea',
 						'heading'    => __( 'Neighborhood options', 'hy-homes-syd-panther' ),
 						'param_name' => 'neighborhood_options',
 						'value'      => 'Waterloo & Zetland|Waterloo|Eastgardens|Zetland|Rosebery|Mascot|Kingsford|Kensington',
+						'dependency' => array(
+							'element' => 'neighborhood_source',
+							'value'   => 'manual',
+						),
 					),
 					array(
 						'type'       => 'textfield',
@@ -415,10 +430,25 @@ final class HY_Homes_Syd_Panther_Plugin {
 						'value'      => '8',
 					),
 					array(
+						'type'        => 'dropdown',
+						'heading'     => __( 'Neighborhood source', 'hy-homes-syd-panther' ),
+						'param_name'  => 'neighborhood_source',
+						'value'       => array(
+							__( 'Auto from Localidades', 'hy-homes-syd-panther' ) => 'auto',
+							__( 'Manual list', 'hy-homes-syd-panther' ) => 'manual',
+						),
+						'std'         => 'auto',
+						'description' => __( 'Auto reads the neighborhoods created in HY Homes Syd > Localidades.', 'hy-homes-syd-panther' ),
+					),
+					array(
 						'type'       => 'textarea',
 						'heading'    => __( 'Neighborhood options', 'hy-homes-syd-panther' ),
 						'param_name' => 'neighborhood_options',
 						'value'      => 'auto',
+						'dependency' => array(
+							'element' => 'neighborhood_source',
+							'value'   => 'manual',
+						),
 					),
 					array(
 						'type'       => 'textarea',

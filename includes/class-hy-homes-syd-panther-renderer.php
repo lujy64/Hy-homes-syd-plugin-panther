@@ -24,7 +24,8 @@ final class HY_Homes_Syd_Panther_Renderer {
 			'results_url'              => '',
 			'neighborhood_label'       => 'NEIGHBORHOOD',
 			'neighborhood_placeholder' => 'seleccionar',
-			'neighborhood_options'     => 'Waterloo & Zetland|Waterloo|Eastgardens|Zetland|Rosebery|Mascot|Kingsford|Kensington',
+			'neighborhood_source'      => 'auto',
+			'neighborhood_options'     => 'auto',
 			'room_label'               => 'ROOM TYPE',
 			'room_placeholder'         => 'numero',
 			'room_min'                 => '1',
@@ -41,6 +42,10 @@ final class HY_Homes_Syd_Panther_Renderer {
 		);
 
 		$atts = shortcode_atts( $defaults, (array) $atts, 'hy_homes_search_filter' );
+
+		if ( 'auto' === sanitize_key( $atts['neighborhood_source'] ) ) {
+			$atts['neighborhood_options'] = 'auto';
+		}
 
 		$neighborhood_options = self::resolve_options( $atts['neighborhood_options'], 'neighborhood' );
 		$move_in_options      = self::resolve_options( $atts['move_in_options'], 'move_in' );
@@ -143,6 +148,7 @@ final class HY_Homes_Syd_Panther_Renderer {
 		$defaults = array(
 			'results_url'          => '',
 			'posts_per_page'       => '8',
+			'neighborhood_source'  => 'auto',
 			'neighborhood_options' => 'auto',
 			'move_in_options'      => 'Immediate|Next 2 weeks|Next month',
 			'search_label'         => 'NEXT SEARCH',
@@ -153,6 +159,10 @@ final class HY_Homes_Syd_Panther_Renderer {
 		);
 
 		$atts          = shortcode_atts( $defaults, (array) $atts, 'hy_homes_property_results' );
+		if ( 'auto' === sanitize_key( $atts['neighborhood_source'] ) ) {
+			$atts['neighborhood_options'] = 'auto';
+		}
+
 		$selected      = self::get_selected_values();
 		$base_url      = self::get_results_base_url( $atts['results_url'] );
 		$filtered_url  = add_query_arg( self::selected_query_args( $selected ), $base_url );
@@ -169,6 +179,7 @@ final class HY_Homes_Syd_Panther_Renderer {
 						echo self::search_filter(
 							array(
 								'results_url'          => $base_url,
+								'neighborhood_source'  => $atts['neighborhood_source'],
 								'neighborhood_options' => $atts['neighborhood_options'],
 								'move_in_options'      => $atts['move_in_options'],
 								'search_label'         => $atts['search_label'],

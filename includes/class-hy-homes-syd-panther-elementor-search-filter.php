@@ -90,12 +90,29 @@ final class HY_Homes_Syd_Panther_Elementor_Search_Filter extends \Elementor\Widg
 		);
 
 		$this->add_control(
+			'neighborhood_source',
+			array(
+				'label'       => __( 'Neighborhood source', 'hy-homes-syd-panther' ),
+				'type'        => \Elementor\Controls_Manager::SELECT,
+				'default'     => 'auto',
+				'options'     => array(
+					'auto'   => __( 'Auto from Localidades', 'hy-homes-syd-panther' ),
+					'manual' => __( 'Manual list', 'hy-homes-syd-panther' ),
+				),
+				'description' => __( 'Auto reads the neighborhoods created in HY Homes Syd > Localidades.', 'hy-homes-syd-panther' ),
+			)
+		);
+
+		$this->add_control(
 			'neighborhood_options',
 			array(
 				'label'       => __( 'Neighborhood options', 'hy-homes-syd-panther' ),
 				'type'        => \Elementor\Controls_Manager::TEXTAREA,
 				'default'     => 'Waterloo & Zetland|Waterloo|Eastgardens|Zetland|Rosebery|Mascot|Kingsford|Kensington',
 				'description' => __( 'Separate options with pipes, commas or new lines.', 'hy-homes-syd-panther' ),
+				'condition'   => array(
+					'neighborhood_source' => 'manual',
+				),
 			)
 		);
 
@@ -150,11 +167,15 @@ final class HY_Homes_Syd_Panther_Elementor_Search_Filter extends \Elementor\Widg
 			$results_url = $settings['results_url']['url'];
 		}
 
+		$neighborhood_source  = isset( $settings['neighborhood_source'] ) ? $settings['neighborhood_source'] : 'auto';
+		$neighborhood_options = isset( $settings['neighborhood_options'] ) ? $settings['neighborhood_options'] : 'auto';
+
 		echo HY_Homes_Syd_Panther_Plugin::instance()->render_search_filter(
 			array(
 				'results_url'          => $results_url,
 				'neighborhood_label'   => $settings['neighborhood_label'],
-				'neighborhood_options' => $settings['neighborhood_options'],
+				'neighborhood_source'  => $neighborhood_source,
+				'neighborhood_options' => $neighborhood_options,
 				'room_label'           => $settings['room_label'],
 				'move_in_label'        => $settings['move_in_label'],
 				'move_in_options'      => $settings['move_in_options'],
