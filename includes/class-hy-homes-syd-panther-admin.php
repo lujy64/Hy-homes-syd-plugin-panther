@@ -145,11 +145,11 @@ final class HY_Homes_Syd_Panther_Admin {
 
 			<h2><?php esc_html_e( 'Spreadsheet columns', 'hy-homes-syd-panther' ); ?></h2>
 			<p><?php esc_html_e( 'Use one row per item. The type column must be property or banner.', 'hy-homes-syd-panther' ); ?></p>
-			<textarea readonly rows="8" class="large-text code">action,type,id,slug,title,description,neighborhood,room_type,bedrooms,bathrooms,street,address,price,availability,price_suffix,status,move_in,detail_url,featured_image_url,gallery_media,map_embed_url,whatsapp_phone,image_url,button_url
-,property,,,Modern Apartment in Zetland,Fully furnished.,Zetland,1,2,1,Calle xx,Full address,1010,Immediate,pw,,,,https://example.com/card.jpg,https://example.com/gallery-1.jpg,,61400000000,,
-,banner,,,Private Sauna Room,A tranquil space to unwind.,Zetland,,,,,,,,,,,,,,,,https://example.com/banner.jpg,https://hyhomessyd.com/#locatios
-delete,property,123,modern-apartment-in-zetland,,,,,,,,,,,,,,,,,,,</textarea>
-			<p class="description"><?php esc_html_e( 'Accepted aliases include accion, tipo, titulo, descripcion, localidad, barrio, imagen, precio, disponibilidad, banos, dormitorios, telefono_whatsapp and url_boton. Use action=delete or accion=eliminar with an id or slug to move an item to Trash.', 'hy-homes-syd-panther' ); ?></p>
+			<textarea readonly rows="8" class="large-text code">action,type,id,slug,title,description,neighborhood,room_type,bedrooms,bathrooms,street,address,price,availability_date,availability,price_suffix,status,move_in,detail_url,featured_image_url,gallery_media,map_embed_url,whatsapp_phone,image_url,button_url
+,property,,,Modern Apartment in Zetland,Fully furnished.,Zetland,1,2,1,Calle xx,Full address,1010,2026-06-10,,pw,,,,https://example.com/card.jpg,https://example.com/gallery-1.jpg,,61400000000,,
+,banner,,,Private Sauna Room,A tranquil space to unwind.,Zetland,,,,,,,,,,,,,,,,,https://example.com/banner.jpg,https://hyhomessyd.com/#locatios
+delete,property,123,modern-apartment-in-zetland,,,,,,,,,,,,,,,,,,,,</textarea>
+			<p class="description"><?php esc_html_e( 'Accepted aliases include accion, tipo, titulo, descripcion, localidad, barrio, imagen, precio, fecha_disponible, disponibilidad, banos, dormitorios, telefono_whatsapp and url_boton. Availability date accepts YYYY-MM-DD and automatically calculates the card label/search filter. Use action=delete or accion=eliminar with an id or slug to move an item to Trash.', 'hy-homes-syd-panther' ); ?></p>
 		</div>
 		<?php
 	}
@@ -735,9 +735,28 @@ delete,property,123,modern-apartment-in-zetland,,,,,,,,,,,,,,,,,,,</textarea>
 	 * @param array<string,string> $row Row data.
 	 */
 	private static function update_property_meta_from_row( $post_id, $row ) {
-		$availability = self::row_value( $row, array( 'availability', 'disponibilidad' ) );
+		$availability_date = HY_Homes_Syd_Panther_Properties::normalize_availability_date(
+			self::row_value(
+				$row,
+				array(
+					'availability_date',
+					'available_date',
+					'available_from',
+					'fecha_disponible',
+					'fecha_disponibilidad',
+					'disponible_desde',
+					'fecha_ingreso',
+					'move_in_date',
+				)
+			)
+		);
+		$availability      = self::row_value( $row, array( 'availability', 'disponibilidad' ) );
 
-		if ( '' !== $availability ) {
+		if ( '' !== $availability_date ) {
+			update_post_meta( $post_id, HY_Homes_Syd_Panther_Properties::META_PREFIX . 'availability_date', $availability_date );
+			update_post_meta( $post_id, HY_Homes_Syd_Panther_Properties::META_PREFIX . 'status', HY_Homes_Syd_Panther_Properties::availability_date_to_status_label( $availability_date ) );
+			update_post_meta( $post_id, HY_Homes_Syd_Panther_Properties::META_PREFIX . 'move_in', HY_Homes_Syd_Panther_Properties::availability_date_to_filter_value( $availability_date ) );
+		} elseif ( '' !== $availability ) {
 			update_post_meta( $post_id, HY_Homes_Syd_Panther_Properties::META_PREFIX . 'status', self::availability_to_status_label( $availability ) );
 			update_post_meta( $post_id, HY_Homes_Syd_Panther_Properties::META_PREFIX . 'move_in', self::availability_to_filter_value( $availability ) );
 		}
@@ -751,7 +770,8 @@ delete,property,123,modern-apartment-in-zetland,,,,,,,,,,,,,,,,,,,</textarea>
 			'price'              => array( 'price', 'precio' ),
 			'price_suffix'       => array( 'price_suffix', 'sufijo_precio' ),
 			'status'             => array( 'status', 'estado' ),
-			'move_in'            => array( 'move_in', 'move_in_date', 'ingreso', 'fecha_ingreso' ),
+			'move_in'            => array( 'move_in', 'ingreso' ),
+			'availability_date'  => array( 'availability_date', 'available_date', 'available_from', 'fecha_disponible', 'fecha_disponibilidad', 'disponible_desde', 'fecha_ingreso', 'move_in_date' ),
 			'detail_url'         => array( 'detail_url', 'url_detalle' ),
 			'featured_image_url' => array( 'featured_image_url', 'image_url', 'card_image', 'imagen_principal', 'imagen' ),
 			'gallery_media'      => array( 'gallery_media', 'gallery', 'galeria', 'media_urls', 'multimedia' ),
@@ -761,6 +781,10 @@ delete,property,123,modern-apartment-in-zetland,,,,,,,,,,,,,,,,,,,</textarea>
 		);
 
 		foreach ( $map as $field => $aliases ) {
+			if ( '' !== $availability_date && in_array( $field, array( 'status', 'move_in' ), true ) ) {
+				continue;
+			}
+
 			$value = self::row_value( $row, $aliases );
 
 			if ( '' === $value ) {
@@ -769,7 +793,9 @@ delete,property,123,modern-apartment-in-zetland,,,,,,,,,,,,,,,,,,,</textarea>
 
 			$meta_key = HY_Homes_Syd_Panther_Properties::META_PREFIX . $field;
 
-			if ( in_array( $field, array( 'room_type', 'bedrooms', 'bathrooms' ), true ) ) {
+			if ( 'availability_date' === $field ) {
+				update_post_meta( $post_id, $meta_key, HY_Homes_Syd_Panther_Properties::normalize_availability_date( $value ) );
+			} elseif ( in_array( $field, array( 'room_type', 'bedrooms', 'bathrooms' ), true ) ) {
 				update_post_meta( $post_id, $meta_key, absint( $value ) );
 			} elseif ( in_array( $field, array( 'detail_url', 'featured_image_url', 'map_embed_url' ), true ) ) {
 				update_post_meta( $post_id, $meta_key, esc_url_raw( $value ) );

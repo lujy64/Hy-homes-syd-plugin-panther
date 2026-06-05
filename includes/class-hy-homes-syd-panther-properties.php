@@ -145,6 +145,7 @@ final class HY_Homes_Syd_Panther_Properties {
 			'price_suffix'       => 'string',
 			'status'             => 'string',
 			'move_in'            => 'string',
+			'availability_date'  => 'string',
 			'detail_url'         => 'string',
 			'featured_image_url' => 'string',
 			'gallery_media'      => 'string',
@@ -254,8 +255,9 @@ final class HY_Homes_Syd_Panther_Properties {
 		$title           = 'auto-draft' === $post->post_status ? '' : get_the_title( $post );
 		$address         = get_post_meta( $post->ID, self::META_PREFIX . 'address', true );
 		$price           = get_post_meta( $post->ID, self::META_PREFIX . 'price', true );
-		$availability    = get_post_meta( $post->ID, self::META_PREFIX . 'move_in', true );
-		$availability    = '' !== $availability ? $availability : get_post_meta( $post->ID, self::META_PREFIX . 'status', true );
+		$availability_date = get_post_meta( $post->ID, self::META_PREFIX . 'availability_date', true );
+		$availability      = get_post_meta( $post->ID, self::META_PREFIX . 'move_in', true );
+		$availability      = '' !== $availability ? $availability : get_post_meta( $post->ID, self::META_PREFIX . 'status', true );
 		$bedrooms        = get_post_meta( $post->ID, self::META_PREFIX . 'bedrooms', true );
 		$bathrooms       = get_post_meta( $post->ID, self::META_PREFIX . 'bathrooms', true );
 		$description     = get_post_field( 'post_content', $post->ID );
@@ -309,15 +311,14 @@ final class HY_Homes_Syd_Panther_Properties {
 					</div>
 
 					<div class="hy-homes-admin-field">
-						<label for="hy_property_availability"><?php esc_html_e( 'Disponibilidad (/Availability)', 'hy-homes-syd-panther' ); ?></label>
-						<input id="hy_property_availability" name="hy_property_availability" type="text" list="hy_property_availability_options" value="<?php echo esc_attr( $availability ); ?>" placeholder="Immediate">
-						<datalist id="hy_property_availability_options">
-							<option value="Immediate">
-							<option value="Next 2 weeks">
-							<option value="Next month">
-							<option value="Available Now">
-						</datalist>
-						<p class="hy-homes-admin-help"><?php esc_html_e( 'Controla etiqueta de card y filtro del buscador (/Controls the card label and search filter).', 'hy-homes-syd-panther' ); ?></p>
+						<label for="hy_property_availability_date"><?php esc_html_e( 'Fecha disponible (/Available date)', 'hy-homes-syd-panther' ); ?></label>
+						<input id="hy_property_availability_date" name="hy_property_availability_date" type="date" value="<?php echo esc_attr( $availability_date ); ?>">
+						<p class="hy-homes-admin-help">
+							<?php esc_html_e( 'El plugin calcula automaticamente: hoy o anterior = Immediate, dentro de 14 dias = Next 2 weeks, despues = Next month (/The plugin calculates the search filter automatically).', 'hy-homes-syd-panther' ); ?>
+							<?php if ( '' !== $availability ) : ?>
+								<br><?php echo esc_html( sprintf( __( 'Filtro actual (/Current filter): %s', 'hy-homes-syd-panther' ), $availability ) ); ?>
+							<?php endif; ?>
+						</p>
 					</div>
 
 					<div class="hy-homes-admin-field">
@@ -479,7 +480,10 @@ final class HY_Homes_Syd_Panther_Properties {
 
 		$address       = isset( $_POST['hy_property_address'] ) ? sanitize_text_field( wp_unslash( $_POST['hy_property_address'] ) ) : '';
 		$price         = isset( $_POST['hy_property_price'] ) ? sanitize_text_field( wp_unslash( $_POST['hy_property_price'] ) ) : '';
-		$availability  = isset( $_POST['hy_property_availability'] ) ? sanitize_text_field( wp_unslash( $_POST['hy_property_availability'] ) ) : '';
+		$old_availability_date = get_post_meta( $post_id, self::META_PREFIX . 'availability_date', true );
+		$availability_date     = isset( $_POST['hy_property_availability_date'] ) ? self::normalize_availability_date( wp_unslash( $_POST['hy_property_availability_date'] ) ) : '';
+		$has_legacy_availability = isset( $_POST['hy_property_availability'] );
+		$availability          = $has_legacy_availability ? sanitize_text_field( wp_unslash( $_POST['hy_property_availability'] ) ) : '';
 		$bedrooms_raw  = isset( $_POST['hy_property_bedrooms'] ) ? wp_unslash( $_POST['hy_property_bedrooms'] ) : '';
 		$bathrooms_raw = isset( $_POST['hy_property_bathrooms'] ) ? wp_unslash( $_POST['hy_property_bathrooms'] ) : '';
 		$bedrooms      = '' === $bedrooms_raw ? '' : absint( $bedrooms_raw );
@@ -490,8 +494,18 @@ final class HY_Homes_Syd_Panther_Properties {
 		self::update_property_meta_value( $post_id, 'address', $address );
 		self::update_property_meta_value( $post_id, 'street', $address );
 		self::update_property_meta_value( $post_id, 'price', $price );
-		self::update_property_meta_value( $post_id, 'status', self::availability_to_status_label( $availability ) );
-		self::update_property_meta_value( $post_id, 'move_in', self::availability_to_filter_value( $availability ) );
+		self::update_property_meta_value( $post_id, 'availability_date', $availability_date );
+
+		if ( '' !== $availability_date ) {
+			self::update_property_meta_value( $post_id, 'status', self::availability_date_to_status_label( $availability_date ) );
+			self::update_property_meta_value( $post_id, 'move_in', self::availability_date_to_filter_value( $availability_date ) );
+		} elseif ( $has_legacy_availability ) {
+			self::update_property_meta_value( $post_id, 'status', self::availability_to_status_label( $availability ) );
+			self::update_property_meta_value( $post_id, 'move_in', self::availability_to_filter_value( $availability ) );
+		} elseif ( '' !== $old_availability_date ) {
+			self::update_property_meta_value( $post_id, 'status', '' );
+			self::update_property_meta_value( $post_id, 'move_in', '' );
+		}
 		self::update_property_meta_value( $post_id, 'bedrooms', $bedrooms );
 		self::update_property_meta_value( $post_id, 'room_type', $bedrooms );
 		self::update_property_meta_value( $post_id, 'bathrooms', $bathrooms );
@@ -530,6 +544,129 @@ final class HY_Homes_Syd_Panther_Properties {
 		}
 
 		update_post_meta( $post_id, $meta_key, $value );
+	}
+
+	/**
+	 * Normalize an available date value to Y-m-d.
+	 *
+	 * @param string $date Date value.
+	 * @return string
+	 */
+	public static function normalize_availability_date( $date ) {
+		$date = trim( sanitize_text_field( (string) $date ) );
+
+		if ( '' === $date ) {
+			return '';
+		}
+
+		if ( preg_match( '/^\d{4}-\d{2}-\d{2}$/', $date ) ) {
+			$parsed = self::date_from_format( 'Y-m-d', $date );
+			return $parsed ? $parsed->format( 'Y-m-d' ) : '';
+		}
+
+		foreach ( array( 'd/m/Y', 'm/d/Y', 'd-m-Y', 'm-d-Y' ) as $format ) {
+			$parsed = self::date_from_format( $format, $date );
+
+			if ( $parsed ) {
+				return $parsed->format( 'Y-m-d' );
+			}
+		}
+
+		$timestamp = strtotime( $date );
+
+		if ( false === $timestamp ) {
+			return '';
+		}
+
+		return wp_date( 'Y-m-d', $timestamp, self::site_timezone() );
+	}
+
+	/**
+	 * Parse a date using a strict format.
+	 *
+	 * @param string $format Date format.
+	 * @param string $date Date value.
+	 * @return DateTimeImmutable|null
+	 */
+	private static function date_from_format( $format, $date ) {
+		$parsed = DateTimeImmutable::createFromFormat( '!' . $format, $date, self::site_timezone() );
+		$errors = DateTimeImmutable::getLastErrors();
+
+		if ( false === $parsed || ( is_array( $errors ) && ( 0 < $errors['warning_count'] || 0 < $errors['error_count'] ) ) ) {
+			return null;
+		}
+
+		return $parsed;
+	}
+
+	/**
+	 * Return the WordPress timezone.
+	 *
+	 * @return DateTimeZone
+	 */
+	private static function site_timezone() {
+		if ( function_exists( 'wp_timezone' ) ) {
+			return wp_timezone();
+		}
+
+		return new DateTimeZone( 'UTC' );
+	}
+
+	/**
+	 * Convert an available date into the card label.
+	 *
+	 * @param string $date Available date in Y-m-d.
+	 * @return string
+	 */
+	public static function availability_date_to_status_label( $date ) {
+		$date = self::normalize_availability_date( $date );
+
+		if ( '' === $date ) {
+			return '';
+		}
+
+		if ( 'Immediate' === self::availability_date_to_filter_value( $date ) ) {
+			return 'Available Now';
+		}
+
+		$timestamp = strtotime( $date . ' 00:00:00' );
+
+		if ( false === $timestamp ) {
+			return '';
+		}
+
+		return 'Available ' . wp_date( 'M j', $timestamp, self::site_timezone() );
+	}
+
+	/**
+	 * Convert an available date into the search filter value.
+	 *
+	 * @param string $date Available date in Y-m-d.
+	 * @return string
+	 */
+	public static function availability_date_to_filter_value( $date ) {
+		$date = self::normalize_availability_date( $date );
+
+		if ( '' === $date ) {
+			return '';
+		}
+
+		$available = self::date_from_format( 'Y-m-d', $date );
+		$today     = new DateTimeImmutable( 'today', self::site_timezone() );
+
+		if ( ! $available ) {
+			return '';
+		}
+
+		if ( $available <= $today ) {
+			return 'Immediate';
+		}
+
+		if ( $available <= $today->modify( '+14 days' ) ) {
+			return 'Next 2 weeks';
+		}
+
+		return 'Next month';
 	}
 
 	/**
