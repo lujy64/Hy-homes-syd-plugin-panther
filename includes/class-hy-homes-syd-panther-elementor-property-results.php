@@ -75,8 +75,8 @@ final class HY_Homes_Syd_Panther_Elementor_Property_Results extends \Elementor\W
 			array(
 				'label'       => __( 'Results URL', 'hy-homes-syd-panther' ),
 				'type'        => \Elementor\Controls_Manager::URL,
-				'placeholder' => home_url( '/' ),
-				'description' => __( 'Leave empty to keep searches on this page.', 'hy-homes-syd-panther' ),
+				'placeholder' => home_url( '/properties/' ),
+				'description' => __( 'Leave empty to keep searches on /properties/. Do not use /hy-properties/.', 'hy-homes-syd-panther' ),
 			)
 		);
 
@@ -88,6 +88,16 @@ final class HY_Homes_Syd_Panther_Elementor_Property_Results extends \Elementor\W
 				'default' => 8,
 				'min'     => 1,
 				'max'     => 48,
+			)
+		);
+
+		$this->add_control(
+			'results_banner_image',
+			array(
+				'label'       => __( 'Results banner image URL', 'hy-homes-syd-panther' ),
+				'type'        => \Elementor\Controls_Manager::TEXT,
+				'placeholder' => 'https://example.com/results-banner.jpg',
+				'description' => __( 'Fixed banner image shown above the results filter. It does not change by selected neighborhood.', 'hy-homes-syd-panther' ),
 			)
 		);
 
@@ -158,6 +168,7 @@ final class HY_Homes_Syd_Panther_Elementor_Property_Results extends \Elementor\W
 			array(
 				'results_url'          => $results_url,
 				'posts_per_page'       => $settings['posts_per_page'],
+				'results_banner_image' => isset( $settings['results_banner_image'] ) ? $settings['results_banner_image'] : '',
 				'neighborhood_source'  => $neighborhood_source,
 				'neighborhood_options' => $neighborhood_options,
 				'move_in_options'      => $settings['move_in_options'],

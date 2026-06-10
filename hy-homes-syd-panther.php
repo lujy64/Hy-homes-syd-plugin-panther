@@ -3,7 +3,7 @@
  * Plugin Name: HY Homes Syd Panther Landing
  * Plugin URI: https://thepanthersoft.com.ar/
  * Description: Landing page elements for HY Homes Syd properties. Includes a property search filter compatible with Elementor, WPBakery and shortcodes.
- * Version: 1.1.7
+ * Version: 1.1.30
  * Author: The Panther Soft - Vaira Maria Lujan
  * Text Domain: hy-homes-syd-panther
  *
@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'HY_HOMES_SYD_PANTHER_VERSION', '1.1.7' );
+define( 'HY_HOMES_SYD_PANTHER_VERSION', '1.1.30' );
 define( 'HY_HOMES_SYD_PANTHER_FILE', __FILE__ );
 define( 'HY_HOMES_SYD_PANTHER_PATH', plugin_dir_path( __FILE__ ) );
 define( 'HY_HOMES_SYD_PANTHER_URL', plugin_dir_url( __FILE__ ) );
@@ -59,6 +59,7 @@ final class HY_Homes_Syd_Panther_Plugin {
 	private function __construct() {
 		add_action( 'init', array( $this, 'register_shortcodes' ) );
 		add_action( 'wp_enqueue_scripts', array( $this, 'register_assets' ) );
+		add_action( 'wp_enqueue_scripts', array( $this, 'maybe_enqueue_floating_whatsapp_assets' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'register_assets' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_assets' ) );
 		add_action( 'elementor/frontend/before_register_styles', array( $this, 'register_assets' ) );
@@ -67,6 +68,7 @@ final class HY_Homes_Syd_Panther_Plugin {
 		add_action( 'elementor/elements/categories_registered', array( $this, 'register_elementor_category' ) );
 		add_action( 'vc_before_init', array( $this, 'register_wpbakery_elements' ) );
 		add_filter( 'the_content', array( $this, 'maybe_render_auto_property_detail' ) );
+		add_action( 'wp_footer', array( $this, 'render_floating_whatsapp' ) );
 	}
 
 	/**
@@ -103,6 +105,28 @@ final class HY_Homes_Syd_Panther_Plugin {
 	}
 
 	/**
+	 * Enqueue frontend assets when the floating WhatsApp button is active.
+	 */
+	public function maybe_enqueue_floating_whatsapp_assets() {
+		if ( is_admin() || ! HY_Homes_Syd_Panther_Renderer::has_whatsapp_agents() ) {
+			return;
+		}
+
+		$this->enqueue_assets();
+	}
+
+	/**
+	 * Render the global floating WhatsApp selector.
+	 */
+	public function render_floating_whatsapp() {
+		if ( is_admin() ) {
+			return;
+		}
+
+		echo HY_Homes_Syd_Panther_Renderer::floating_whatsapp(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+	}
+
+	/**
 	 * Enqueue admin styles on plugin editing screens.
 	 */
 	public function enqueue_admin_assets() {
@@ -129,6 +153,7 @@ final class HY_Homes_Syd_Panther_Plugin {
 
 		$this->register_assets();
 		wp_enqueue_style( 'hy-homes-syd-panther' );
+		wp_enqueue_script( 'hy-homes-syd-panther' );
 	}
 
 	/**
@@ -145,6 +170,8 @@ final class HY_Homes_Syd_Panther_Plugin {
 		add_shortcode( 'panther_hy_homes_property_detail', array( $this, 'render_property_detail_shortcode' ) );
 		add_shortcode( 'hy_homes_random_banners', array( $this, 'render_random_banners_shortcode' ) );
 		add_shortcode( 'panther_hy_homes_random_banners', array( $this, 'render_random_banners_shortcode' ) );
+		add_shortcode( 'hy_homes_locations', array( $this, 'render_locations_shortcode' ) );
+		add_shortcode( 'panther_hy_homes_locations', array( $this, 'render_locations_shortcode' ) );
 	}
 
 	/**
@@ -258,6 +285,28 @@ final class HY_Homes_Syd_Panther_Plugin {
 	}
 
 	/**
+	 * Render the locations shortcode.
+	 *
+	 * @param array<string,string> $atts Shortcode attributes.
+	 * @return string
+	 */
+	public function render_locations_shortcode( $atts ) {
+		return $this->render_locations( $atts );
+	}
+
+	/**
+	 * Render the locations carousel element.
+	 *
+	 * @param array<string,mixed> $atts Element attributes.
+	 * @return string
+	 */
+	public function render_locations( $atts = array() ) {
+		$this->enqueue_assets();
+
+		return HY_Homes_Syd_Panther_Renderer::locations_carousel( $atts );
+	}
+
+	/**
 	 * Render the detail layout automatically on single property pages.
 	 *
 	 * @param string $content Original post content.
@@ -309,6 +358,7 @@ final class HY_Homes_Syd_Panther_Plugin {
 		require_once HY_HOMES_SYD_PANTHER_PATH . 'includes/class-hy-homes-syd-panther-elementor-recent-properties-carousel.php';
 		require_once HY_HOMES_SYD_PANTHER_PATH . 'includes/class-hy-homes-syd-panther-elementor-property-detail.php';
 		require_once HY_HOMES_SYD_PANTHER_PATH . 'includes/class-hy-homes-syd-panther-elementor-random-banners.php';
+		require_once HY_HOMES_SYD_PANTHER_PATH . 'includes/class-hy-homes-syd-panther-elementor-locations.php';
 
 		$widgets = array(
 			new HY_Homes_Syd_Panther_Elementor_Search_Filter(),
@@ -316,6 +366,7 @@ final class HY_Homes_Syd_Panther_Plugin {
 			new HY_Homes_Syd_Panther_Elementor_Recent_Properties_Carousel(),
 			new HY_Homes_Syd_Panther_Elementor_Property_Detail(),
 			new HY_Homes_Syd_Panther_Elementor_Random_Banners(),
+			new HY_Homes_Syd_Panther_Elementor_Locations(),
 		);
 
 		if ( method_exists( $widgets_manager, 'register' ) ) {
@@ -352,7 +403,7 @@ final class HY_Homes_Syd_Panther_Plugin {
 						'type'        => 'textfield',
 						'heading'     => __( 'Results URL', 'hy-homes-syd-panther' ),
 						'param_name'  => 'results_url',
-						'description' => __( 'Leave empty to search on the current page.', 'hy-homes-syd-panther' ),
+						'description' => __( 'Leave empty to use /properties/. Do not use /hy-properties/.', 'hy-homes-syd-panther' ),
 					),
 					array(
 						'type'       => 'textfield',
@@ -421,13 +472,19 @@ final class HY_Homes_Syd_Panther_Plugin {
 						'type'        => 'textfield',
 						'heading'     => __( 'Results URL', 'hy-homes-syd-panther' ),
 						'param_name'  => 'results_url',
-						'description' => __( 'Leave empty to keep the search on this page.', 'hy-homes-syd-panther' ),
+						'description' => __( 'Leave empty to keep searches on /properties/. Do not use /hy-properties/.', 'hy-homes-syd-panther' ),
 					),
 					array(
 						'type'       => 'textfield',
 						'heading'    => __( 'Properties per page', 'hy-homes-syd-panther' ),
 						'param_name' => 'posts_per_page',
 						'value'      => '8',
+					),
+					array(
+						'type'        => 'textfield',
+						'heading'     => __( 'Results banner image URL', 'hy-homes-syd-panther' ),
+						'param_name'  => 'results_banner_image',
+						'description' => __( 'Fixed banner image shown above the results filter. It does not change by selected neighborhood.', 'hy-homes-syd-panther' ),
 					),
 					array(
 						'type'        => 'dropdown',
@@ -551,6 +608,56 @@ final class HY_Homes_Syd_Panther_Plugin {
 						'heading'    => __( 'Button URL', 'hy-homes-syd-panther' ),
 						'param_name' => 'banner_button_url',
 						'value'      => 'https://hyhomessyd.com/#locatios',
+					),
+				),
+			)
+		);
+
+		vc_map(
+			array(
+				'name'        => __( 'HY Homes Locations', 'hy-homes-syd-panther' ),
+				'base'        => 'hy_homes_locations',
+				'description' => __( 'Carousel of neighborhood/location cards with image, highlight label, description and filtered results links.', 'hy-homes-syd-panther' ),
+				'category'    => __( 'HY Homes Syd', 'hy-homes-syd-panther' ),
+				'icon'        => 'dashicons dashicons-location-alt',
+				'params'      => array(
+					array(
+						'type'       => 'textfield',
+						'heading'    => __( 'Title', 'hy-homes-syd-panther' ),
+						'param_name' => 'title',
+						'value'      => "Find Your Place in Sydney's Best Neighborhoods",
+					),
+					array(
+						'type'       => 'textfield',
+						'heading'    => __( 'Side Label', 'hy-homes-syd-panther' ),
+						'param_name' => 'eyebrow',
+						'value'      => 'LOCATIONS',
+					),
+					array(
+						'type'        => 'textarea',
+						'heading'     => __( 'Locations', 'hy-homes-syd-panther' ),
+						'param_name'  => 'locations',
+						'value'       => 'auto',
+						'description' => __( 'Use auto for all Localidades, or list names/slugs separated by | to control order.', 'hy-homes-syd-panther' ),
+					),
+					array(
+						'type'       => 'textfield',
+						'heading'    => __( 'Results URL', 'hy-homes-syd-panther' ),
+						'param_name' => 'results_url',
+						'value'      => '/properties/',
+					),
+					array(
+						'type'       => 'textfield',
+						'heading'    => __( 'Button Label', 'hy-homes-syd-panther' ),
+						'param_name' => 'button_label',
+						'value'      => 'EXPLORE PROPERTIES',
+					),
+					array(
+						'type'        => 'textfield',
+						'heading'     => __( 'Limit', 'hy-homes-syd-panther' ),
+						'param_name'  => 'limit',
+						'value'       => '0',
+						'description' => __( 'Use 0 to show all locations.', 'hy-homes-syd-panther' ),
 					),
 				),
 			)

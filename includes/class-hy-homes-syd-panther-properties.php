@@ -18,15 +18,24 @@ final class HY_Homes_Syd_Panther_Properties {
 	const TAX_NEIGHBORHOOD   = 'hy_property_neighborhood';
 	const META_PREFIX        = '_hy_property_';
 	const BANNER_META_PREFIX = '_hy_banner_';
+	const NEIGHBORHOOD_META_PREFIX = '_hy_neighborhood_';
+	const DEFAULT_DETAIL_URL       = 'https://hyhomesyd.thepanthersoft.com.ar/property-detail/';
+	const DEFAULT_TITLE_BASE       = 'Modern Apartment';
+	const REWRITE_VERSION_OPTION   = 'hy_homes_syd_panther_rewrite_version';
 
 	/**
 	 * Register hooks.
 	 */
 	public static function init() {
 		add_action( 'init', array( __CLASS__, 'register_content_types' ) );
+		add_action( 'init', array( __CLASS__, 'maybe_flush_rewrite_rules' ), 20 );
 		add_action( 'add_meta_boxes', array( __CLASS__, 'add_meta_boxes' ) );
 		add_action( 'save_post_' . self::POST_TYPE, array( __CLASS__, 'save_property' ) );
 		add_action( 'save_post_' . self::BANNER_POST_TYPE, array( __CLASS__, 'save_banner' ) );
+		add_action( self::TAX_NEIGHBORHOOD . '_add_form_fields', array( __CLASS__, 'render_neighborhood_add_fields' ) );
+		add_action( self::TAX_NEIGHBORHOOD . '_edit_form_fields', array( __CLASS__, 'render_neighborhood_edit_fields' ) );
+		add_action( 'created_' . self::TAX_NEIGHBORHOOD, array( __CLASS__, 'save_neighborhood_meta' ) );
+		add_action( 'edited_' . self::TAX_NEIGHBORHOOD, array( __CLASS__, 'save_neighborhood_meta' ) );
 		add_filter( 'gettext', array( __CLASS__, 'filter_neighborhood_admin_text' ), 20, 3 );
 	}
 
@@ -43,6 +52,22 @@ final class HY_Homes_Syd_Panther_Properties {
 	 */
 	public static function deactivate() {
 		flush_rewrite_rules();
+	}
+
+	/**
+	 * Flush rewrite rules once after plugin updates that affect public URLs.
+	 */
+	public static function maybe_flush_rewrite_rules() {
+		if ( ! defined( 'HY_HOMES_SYD_PANTHER_VERSION' ) ) {
+			return;
+		}
+
+		if ( HY_HOMES_SYD_PANTHER_VERSION === get_option( self::REWRITE_VERSION_OPTION ) ) {
+			return;
+		}
+
+		flush_rewrite_rules( false );
+		update_option( self::REWRITE_VERSION_OPTION, HY_HOMES_SYD_PANTHER_VERSION );
 	}
 
 	/**
@@ -117,7 +142,7 @@ final class HY_Homes_Syd_Panther_Properties {
 					'name_field_description'   => __( 'Nombre visible de la localidad (/Visible neighborhood name).', 'hy-homes-syd-panther' ),
 					'slug_field_description'   => __( 'Version amigable para URL (/URL-friendly version).', 'hy-homes-syd-panther' ),
 					'parent_field_description' => __( 'Opcional: usar si una localidad depende de otra (/Optional: use if a neighborhood belongs under another).', 'hy-homes-syd-panther' ),
-					'desc_field_description'   => __( 'Notas internas o descripcion publica de la localidad (/Internal notes or public neighborhood description).', 'hy-homes-syd-panther' ),
+					'desc_field_description'   => __( 'Descripcion publica que aparece en el shortcode de locations (/Public description shown in the locations shortcode).', 'hy-homes-syd-panther' ),
 				),
 				'hierarchical'      => true,
 				'public'            => true,
@@ -129,6 +154,7 @@ final class HY_Homes_Syd_Panther_Properties {
 
 		self::register_meta_fields();
 		self::register_banner_meta_fields();
+		self::register_neighborhood_meta_fields();
 	}
 
 	/**
@@ -150,7 +176,6 @@ final class HY_Homes_Syd_Panther_Properties {
 			'featured_image_url' => 'string',
 			'gallery_media'      => 'string',
 			'map_embed_url'      => 'string',
-			'whatsapp_phone'     => 'string',
 			'location_banners' => 'string',
 		);
 
@@ -209,6 +234,32 @@ final class HY_Homes_Syd_Panther_Properties {
 	}
 
 	/**
+	 * Register locality term meta fields used by the locations shortcode.
+	 */
+	private static function register_neighborhood_meta_fields() {
+		$fields = array(
+			'highlight' => 'sanitize_text_field',
+			'image_url' => 'esc_url_raw',
+		);
+
+		foreach ( $fields as $field => $sanitize_callback ) {
+			register_term_meta(
+				self::TAX_NEIGHBORHOOD,
+				self::NEIGHBORHOOD_META_PREFIX . $field,
+				array(
+					'type'              => 'string',
+					'single'            => true,
+					'sanitize_callback' => $sanitize_callback,
+					'show_in_rest'      => true,
+					'auth_callback'     => function() {
+						return current_user_can( 'manage_categories' );
+					},
+				)
+			);
+		}
+	}
+
+	/**
 	 * Add property details meta box.
 	 */
 	public static function add_meta_boxes() {
@@ -252,7 +303,6 @@ final class HY_Homes_Syd_Panther_Properties {
 		);
 		$current_terms   = wp_get_object_terms( $post->ID, self::TAX_NEIGHBORHOOD, array( 'fields' => 'ids' ) );
 		$current_term_id = ! is_wp_error( $current_terms ) && ! empty( $current_terms ) ? absint( $current_terms[0] ) : 0;
-		$title           = 'auto-draft' === $post->post_status ? '' : get_the_title( $post );
 		$address         = get_post_meta( $post->ID, self::META_PREFIX . 'address', true );
 		$price           = get_post_meta( $post->ID, self::META_PREFIX . 'price', true );
 		$availability_date = get_post_meta( $post->ID, self::META_PREFIX . 'availability_date', true );
@@ -263,6 +313,11 @@ final class HY_Homes_Syd_Panther_Properties {
 		$description     = get_post_field( 'post_content', $post->ID );
 		$map_url         = get_post_meta( $post->ID, self::META_PREFIX . 'map_embed_url', true );
 		$gallery_media   = get_post_meta( $post->ID, self::META_PREFIX . 'gallery_media', true );
+		$detail_url      = get_post_meta( $post->ID, self::META_PREFIX . 'detail_url', true );
+
+		if ( '' === $detail_url ) {
+			$detail_url = self::DEFAULT_DETAIL_URL;
+		}
 		?>
 		<div class="hy-homes-admin-fields hy-homes-admin-fields--property">
 			<div class="hy-homes-admin-section">
@@ -270,7 +325,7 @@ final class HY_Homes_Syd_Panther_Properties {
 				<div class="hy-homes-admin-grid hy-homes-admin-grid--3">
 					<div class="hy-homes-admin-field">
 						<label for="hy_property_locality_existing"><?php esc_html_e( 'Localidad existente (/Existing neighborhood)', 'hy-homes-syd-panther' ); ?></label>
-						<select id="hy_property_locality_existing" name="hy_property_locality_existing">
+						<select id="hy_property_locality_existing" name="hy_property_locality_existing" data-hy-homes-locality-select data-add-new-value="__hy_add_new__">
 							<option value=""><?php esc_html_e( 'Seleccionar localidad (/Select neighborhood)', 'hy-homes-syd-panther' ); ?></option>
 							<?php if ( ! is_wp_error( $terms ) ) : ?>
 								<?php foreach ( $terms as $term ) : ?>
@@ -279,19 +334,21 @@ final class HY_Homes_Syd_Panther_Properties {
 									</option>
 								<?php endforeach; ?>
 							<?php endif; ?>
+							<option value="__hy_add_new__"><?php esc_html_e( '+ Agregar localidad (/Add neighborhood)', 'hy-homes-syd-panther' ); ?></option>
 						</select>
-						<p class="hy-homes-admin-help"><?php esc_html_e( 'Usar una localidad ya cargada (/Use an existing neighborhood).', 'hy-homes-syd-panther' ); ?></p>
+						<p class="hy-homes-admin-help"><?php esc_html_e( 'Elegir una localidad existente o usar + Agregar localidad (/Choose an existing neighborhood or use + Add neighborhood).', 'hy-homes-syd-panther' ); ?></p>
 					</div>
 
-					<div class="hy-homes-admin-field">
-						<label for="hy_property_locality_new"><?php esc_html_e( 'Nueva localidad (/New neighborhood)', 'hy-homes-syd-panther' ); ?></label>
+					<div class="hy-homes-admin-field" data-hy-homes-locality-new hidden>
+						<label for="hy_property_locality_new"><?php esc_html_e( 'Nombre de nueva localidad (/New neighborhood name)', 'hy-homes-syd-panther' ); ?></label>
 						<input id="hy_property_locality_new" name="hy_property_locality_new" type="text" value="" placeholder="<?php esc_attr_e( 'Ej: Zetland', 'hy-homes-syd-panther' ); ?>">
-						<p class="hy-homes-admin-help"><?php esc_html_e( 'Si se completa, reemplaza la localidad seleccionada (/If filled, it replaces the selected neighborhood).', 'hy-homes-syd-panther' ); ?></p>
+						<p class="hy-homes-admin-help"><?php esc_html_e( 'Se muestra solo cuando elegis + Agregar localidad (/Shown only when + Add neighborhood is selected).', 'hy-homes-syd-panther' ); ?></p>
 					</div>
 
 					<div class="hy-homes-admin-field">
 						<label for="hy_property_address"><?php esc_html_e( 'Direccion (/Address)', 'hy-homes-syd-panther' ); ?></label>
 						<input id="hy_property_address" name="hy_property_address" type="text" value="<?php echo esc_attr( $address ); ?>" placeholder="<?php esc_attr_e( 'Calle, numero, ciudad', 'hy-homes-syd-panther' ); ?>">
+						<p class="hy-homes-admin-help"><?php esc_html_e( 'El nombre de la propiedad se genera automaticamente: Modern Apartment in direccion, localidad (/The property name is generated automatically).', 'hy-homes-syd-panther' ); ?></p>
 					</div>
 				</div>
 			</div>
@@ -299,11 +356,6 @@ final class HY_Homes_Syd_Panther_Properties {
 			<div class="hy-homes-admin-section">
 				<h3><?php esc_html_e( 'Datos principales (/Main details)', 'hy-homes-syd-panther' ); ?></h3>
 				<div class="hy-homes-admin-grid hy-homes-admin-grid--3">
-					<div class="hy-homes-admin-field hy-homes-admin-field--wide">
-						<label for="hy_property_title"><?php esc_html_e( 'Nombre de la propiedad (/Property name)', 'hy-homes-syd-panther' ); ?></label>
-						<input id="hy_property_title" name="hy_property_title" type="text" value="<?php echo esc_attr( $title ); ?>" placeholder="<?php esc_attr_e( 'Ej: Modern Apartment in Zetland', 'hy-homes-syd-panther' ); ?>">
-					</div>
-
 					<div class="hy-homes-admin-field">
 						<label for="hy_property_price"><?php esc_html_e( 'Precio (/Price)', 'hy-homes-syd-panther' ); ?></label>
 						<input id="hy_property_price" name="hy_property_price" type="text" value="<?php echo esc_attr( $price ); ?>" placeholder="1010">
@@ -335,7 +387,10 @@ final class HY_Homes_Syd_Panther_Properties {
 					<div class="hy-homes-admin-field">
 						<label for="hy_property_map_embed_url"><?php esc_html_e( 'URL de Maps (/Maps URL)', 'hy-homes-syd-panther' ); ?></label>
 						<input id="hy_property_map_embed_url" name="hy_property_map_embed_url" type="url" value="<?php echo esc_attr( $map_url ); ?>" placeholder="https://www.google.com/maps?...">
+						<p class="hy-homes-admin-help"><?php esc_html_e( 'Puede ser una URL normal de Google Maps o una URL embed. Si falla, se usa la direccion (/Can be a regular Google Maps URL or an embed URL. If it fails, the address is used).', 'hy-homes-syd-panther' ); ?></p>
 					</div>
+
+					<input id="hy_property_detail_url" name="hy_property_detail_url" type="hidden" value="<?php echo esc_attr( $detail_url ); ?>">
 				</div>
 			</div>
 
@@ -462,22 +517,7 @@ final class HY_Homes_Syd_Panther_Properties {
 			return;
 		}
 
-		$title       = isset( $_POST['hy_property_title'] ) ? sanitize_text_field( wp_unslash( $_POST['hy_property_title'] ) ) : '';
 		$description = isset( $_POST['hy_property_description'] ) ? wp_kses_post( wp_unslash( $_POST['hy_property_description'] ) ) : '';
-
-		$post_update = array(
-			'ID'           => $post_id,
-			'post_content' => $description,
-		);
-
-		if ( '' !== $title ) {
-			$post_update['post_title'] = $title;
-		}
-
-		remove_action( 'save_post_' . self::POST_TYPE, array( __CLASS__, 'save_property' ) );
-		wp_update_post( $post_update );
-		add_action( 'save_post_' . self::POST_TYPE, array( __CLASS__, 'save_property' ) );
-
 		$address       = isset( $_POST['hy_property_address'] ) ? sanitize_text_field( wp_unslash( $_POST['hy_property_address'] ) ) : '';
 		$price         = isset( $_POST['hy_property_price'] ) ? sanitize_text_field( wp_unslash( $_POST['hy_property_price'] ) ) : '';
 		$old_availability_date = get_post_meta( $post_id, self::META_PREFIX . 'availability_date', true );
@@ -489,7 +529,29 @@ final class HY_Homes_Syd_Panther_Properties {
 		$bedrooms      = '' === $bedrooms_raw ? '' : absint( $bedrooms_raw );
 		$bathrooms     = '' === $bathrooms_raw ? '' : absint( $bathrooms_raw );
 		$map_url       = isset( $_POST['hy_property_map_embed_url'] ) ? esc_url_raw( wp_unslash( $_POST['hy_property_map_embed_url'] ) ) : '';
+		$detail_url    = isset( $_POST['hy_property_detail_url'] ) ? esc_url_raw( wp_unslash( $_POST['hy_property_detail_url'] ) ) : '';
 		$gallery_media = isset( $_POST['hy_property_gallery_media'] ) ? sanitize_textarea_field( wp_unslash( $_POST['hy_property_gallery_media'] ) ) : '';
+
+		if ( '' === $detail_url ) {
+			$detail_url = self::DEFAULT_DETAIL_URL;
+		}
+
+		$locality_choice  = isset( $_POST['hy_property_locality_existing'] ) ? sanitize_text_field( wp_unslash( $_POST['hy_property_locality_existing'] ) ) : '';
+		$adding_locality  = '__hy_add_new__' === $locality_choice;
+		$existing_term_id = $adding_locality ? 0 : absint( $locality_choice );
+		$new_locality     = $adding_locality && isset( $_POST['hy_property_locality_new'] ) ? sanitize_text_field( wp_unslash( $_POST['hy_property_locality_new'] ) ) : '';
+		$locality_name    = '' !== $new_locality ? $new_locality : self::get_term_name( $existing_term_id );
+		$title            = self::build_property_title( $address, $locality_name );
+
+		remove_action( 'save_post_' . self::POST_TYPE, array( __CLASS__, 'save_property' ) );
+		wp_update_post(
+			array(
+				'ID'           => $post_id,
+				'post_title'   => $title,
+				'post_content' => $description,
+			)
+		);
+		add_action( 'save_post_' . self::POST_TYPE, array( __CLASS__, 'save_property' ) );
 
 		self::update_property_meta_value( $post_id, 'address', $address );
 		self::update_property_meta_value( $post_id, 'street', $address );
@@ -510,14 +572,12 @@ final class HY_Homes_Syd_Panther_Properties {
 		self::update_property_meta_value( $post_id, 'room_type', $bedrooms );
 		self::update_property_meta_value( $post_id, 'bathrooms', $bathrooms );
 		self::update_property_meta_value( $post_id, 'map_embed_url', $map_url );
+		self::update_property_meta_value( $post_id, 'detail_url', $detail_url );
 		self::update_property_meta_value( $post_id, 'gallery_media', $gallery_media );
 
 		if ( '' !== $price && '' === get_post_meta( $post_id, self::META_PREFIX . 'price_suffix', true ) ) {
 			update_post_meta( $post_id, self::META_PREFIX . 'price_suffix', 'pw' );
 		}
-
-		$existing_term_id = isset( $_POST['hy_property_locality_existing'] ) ? absint( wp_unslash( $_POST['hy_property_locality_existing'] ) ) : 0;
-		$new_locality     = isset( $_POST['hy_property_locality_new'] ) ? sanitize_text_field( wp_unslash( $_POST['hy_property_locality_new'] ) ) : '';
 
 		if ( '' !== $new_locality ) {
 			wp_set_object_terms( $post_id, array( $new_locality ), self::TAX_NEIGHBORHOOD, false );
@@ -526,6 +586,51 @@ final class HY_Homes_Syd_Panther_Properties {
 		} else {
 			wp_set_object_terms( $post_id, array(), self::TAX_NEIGHBORHOOD, false );
 		}
+	}
+
+	/**
+	 * Build the visible property title from address and neighborhood.
+	 *
+	 * @param string $address Address.
+	 * @param string $locality Locality/neighborhood.
+	 * @return string
+	 */
+	public static function build_property_title( $address, $locality ) {
+		$parts = array_filter(
+			array_map(
+				'trim',
+				array(
+					sanitize_text_field( (string) $address ),
+					sanitize_text_field( (string) $locality ),
+				)
+			)
+		);
+
+		if ( empty( $parts ) ) {
+			return self::DEFAULT_TITLE_BASE;
+		}
+
+		return self::DEFAULT_TITLE_BASE . ' in ' . implode( ', ', $parts );
+	}
+
+	/**
+	 * Get a taxonomy term name by ID.
+	 *
+	 * @param int $term_id Term ID.
+	 * @return string
+	 */
+	private static function get_term_name( $term_id ) {
+		if ( ! $term_id ) {
+			return '';
+		}
+
+		$term = get_term( $term_id, self::TAX_NEIGHBORHOOD );
+
+		if ( $term instanceof WP_Term ) {
+			return $term->name;
+		}
+
+		return '';
 	}
 
 	/**
@@ -778,6 +883,96 @@ final class HY_Homes_Syd_Panther_Properties {
 	}
 
 	/**
+	 * Render extra locality fields on the add form.
+	 *
+	 * @param string|null $taxonomy Taxonomy name.
+	 */
+	public static function render_neighborhood_add_fields( $taxonomy = null ) {
+		unset( $taxonomy );
+
+		wp_nonce_field( 'hy_homes_save_neighborhood_meta', 'hy_homes_neighborhood_meta_nonce' );
+		?>
+		<div class="form-field">
+			<label for="hy_neighborhood_highlight"><?php esc_html_e( 'Etiqueta destacada (/Highlight label)', 'hy-homes-syd-panther' ); ?></label>
+			<input id="hy_neighborhood_highlight" name="hy_neighborhood_highlight" type="text" value="" placeholder="<?php esc_attr_e( 'Ej: MODERN LIVING & CONVENIENCE', 'hy-homes-syd-panther' ); ?>">
+			<p><?php esc_html_e( 'Texto breve que aparece sobre la imagen de la tarjeta de location (/Short label shown over the location card image).', 'hy-homes-syd-panther' ); ?></p>
+		</div>
+
+		<div class="form-field">
+			<label for="hy_neighborhood_image_url"><?php esc_html_e( 'URL de imagen (/Image URL)', 'hy-homes-syd-panther' ); ?></label>
+			<input id="hy_neighborhood_image_url" name="hy_neighborhood_image_url" type="url" value="" placeholder="https://example.com/location.jpg">
+			<p><?php esc_html_e( 'Imagen principal para el shortcode de locations (/Main image for the locations shortcode).', 'hy-homes-syd-panther' ); ?></p>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Render extra locality fields on the edit form.
+	 *
+	 * @param WP_Term $term Current term.
+	 */
+	public static function render_neighborhood_edit_fields( $term ) {
+		$highlight = get_term_meta( $term->term_id, self::NEIGHBORHOOD_META_PREFIX . 'highlight', true );
+		$image_url = get_term_meta( $term->term_id, self::NEIGHBORHOOD_META_PREFIX . 'image_url', true );
+
+		wp_nonce_field( 'hy_homes_save_neighborhood_meta', 'hy_homes_neighborhood_meta_nonce' );
+		?>
+		<tr class="form-field">
+			<th scope="row">
+				<label for="hy_neighborhood_highlight"><?php esc_html_e( 'Etiqueta destacada (/Highlight label)', 'hy-homes-syd-panther' ); ?></label>
+			</th>
+			<td>
+				<input id="hy_neighborhood_highlight" name="hy_neighborhood_highlight" type="text" value="<?php echo esc_attr( $highlight ); ?>" placeholder="<?php esc_attr_e( 'Ej: MODERN LIVING & CONVENIENCE', 'hy-homes-syd-panther' ); ?>">
+				<p class="description"><?php esc_html_e( 'Texto breve que aparece sobre la imagen de la tarjeta de location (/Short label shown over the location card image).', 'hy-homes-syd-panther' ); ?></p>
+			</td>
+		</tr>
+
+		<tr class="form-field">
+			<th scope="row">
+				<label for="hy_neighborhood_image_url"><?php esc_html_e( 'URL de imagen (/Image URL)', 'hy-homes-syd-panther' ); ?></label>
+			</th>
+			<td>
+				<input id="hy_neighborhood_image_url" name="hy_neighborhood_image_url" type="url" value="<?php echo esc_attr( $image_url ); ?>" placeholder="https://example.com/location.jpg">
+				<p class="description"><?php esc_html_e( 'Imagen principal para el shortcode de locations (/Main image for the locations shortcode).', 'hy-homes-syd-panther' ); ?></p>
+			</td>
+		</tr>
+		<?php
+	}
+
+	/**
+	 * Save extra locality fields.
+	 *
+	 * @param int $term_id Current term ID.
+	 */
+	public static function save_neighborhood_meta( $term_id ) {
+		if ( ! isset( $_POST['hy_homes_neighborhood_meta_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['hy_homes_neighborhood_meta_nonce'] ) ), 'hy_homes_save_neighborhood_meta' ) ) {
+			return;
+		}
+
+		if ( ! current_user_can( 'manage_categories' ) ) {
+			return;
+		}
+
+		$fields = array(
+			'highlight' => 'text',
+			'image_url' => 'url',
+		);
+
+		foreach ( $fields as $field => $type ) {
+			$post_key = 'hy_neighborhood_' . $field;
+			$meta_key = self::NEIGHBORHOOD_META_PREFIX . $field;
+			$value    = isset( $_POST[ $post_key ] ) ? wp_unslash( $_POST[ $post_key ] ) : '';
+			$value    = 'url' === $type ? esc_url_raw( $value ) : sanitize_text_field( $value );
+
+			if ( '' === $value ) {
+				delete_term_meta( $term_id, $meta_key );
+			} else {
+				update_term_meta( $term_id, $meta_key, $value );
+			}
+		}
+	}
+
+	/**
 	 * Add bilingual wording to the native WordPress neighborhood fields.
 	 *
 	 * @param string $translation Current translated text.
@@ -805,7 +1000,7 @@ final class HY_Homes_Syd_Panther_Properties {
 			'Count'                                                                => 'Cantidad (/Count)',
 			'The name is how it appears on your site.'                             => 'El nombre es como aparece en el sitio (/The name is how it appears on your site).',
 			'The &#8220;slug&#8221; is the URL-friendly version of the name. It is usually all lowercase and contains only letters, numbers, and hyphens.' => 'El slug es la version amigable para URL del nombre (/The slug is the URL-friendly version of the name).',
-			'The description is not prominent by default; however, some themes may show it.' => 'La descripcion no se muestra por defecto, aunque algunos temas pueden mostrarla (/The description is not prominent by default; some themes may show it).',
+			'The description is not prominent by default; however, some themes may show it.' => 'La descripcion aparece en el shortcode de locations (/The description is shown in the locations shortcode).',
 		);
 
 		return isset( $map[ $text ] ) ? $map[ $text ] : $translation;

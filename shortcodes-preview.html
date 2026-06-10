@@ -500,6 +500,144 @@
 			font-weight: 800;
 		}
 
+		.locations-preview {
+			display: grid;
+			grid-template-columns: 110px minmax(0, 1fr);
+			gap: 28px;
+			padding: 42px 0 34px;
+			overflow: hidden;
+			background: #2b312e;
+			color: #fff;
+		}
+
+		.locations-rail {
+			display: flex;
+			justify-content: center;
+			padding-top: 8px;
+		}
+
+		.locations-rail span {
+			color: #000;
+			font-size: 54px;
+			font-weight: 900;
+			line-height: 1;
+			text-transform: uppercase;
+			transform: rotate(180deg);
+			writing-mode: vertical-rl;
+		}
+
+		.locations-body {
+			min-width: 0;
+			padding-right: 26px;
+		}
+
+		.location-cards {
+			display: grid;
+			grid-template-columns: repeat(3, minmax(260px, 1fr));
+			gap: 26px;
+			min-width: 920px;
+		}
+
+		.location-card {
+			overflow: hidden;
+			border-radius: 6px;
+			background: #fff;
+			color: var(--deep);
+		}
+
+		.location-card__image {
+			position: relative;
+			min-height: 250px;
+			background:
+				linear-gradient(180deg, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.18)),
+				linear-gradient(135deg, #53748f, #aeb59c 54%, #45514e);
+		}
+
+		.location-card:nth-child(2) .location-card__image {
+			background:
+				linear-gradient(180deg, rgba(0, 0, 0, 0.12), rgba(0, 0, 0, 0.08)),
+				linear-gradient(135deg, #173c66, #d2d6c9 55%, #53635e);
+		}
+
+		.location-card:nth-child(3) .location-card__image {
+			background:
+				linear-gradient(180deg, rgba(0, 0, 0, 0.12), rgba(0, 0, 0, 0.1)),
+				linear-gradient(135deg, #155081, #98b6c9 48%, #283735);
+		}
+
+		.location-card__copy {
+			position: absolute;
+			top: 22px;
+			left: 24px;
+			right: 22px;
+		}
+
+		.location-card__copy h3 {
+			margin: 0 0 8px;
+			color: #fff;
+			font-size: 28px;
+			font-weight: 900;
+			line-height: 0.98;
+			text-transform: uppercase;
+		}
+
+		.location-card__copy span {
+			display: inline-flex;
+			min-height: 24px;
+			padding: 6px 16px;
+			border-radius: 999px;
+			background: rgba(79, 89, 86, 0.92);
+			color: #fff;
+			font-size: 10px;
+			font-weight: 800;
+			line-height: 1;
+			text-transform: uppercase;
+		}
+
+		.location-card__text {
+			padding: 16px 28px 14px;
+		}
+
+		.location-card__text p {
+			margin: 0 0 18px;
+			color: var(--muted);
+			font-size: 14px;
+			line-height: 1.35;
+		}
+
+		.location-card__text a {
+			display: flex;
+			justify-content: center;
+			color: var(--green);
+			font-size: 13px;
+			font-weight: 900;
+			letter-spacing: 0.04em;
+			text-decoration: none;
+			text-transform: uppercase;
+		}
+
+		.locations-footer {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 22px;
+			margin-top: 34px;
+		}
+
+		.locations-footer h3 {
+			max-width: 340px;
+			margin: 0;
+			color: #fff;
+			font-size: 25px;
+			font-weight: 900;
+			line-height: 1.25;
+		}
+
+		.locations-footer .arrows {
+			margin-right: 68px;
+			color: #fff;
+		}
+
 		.admin-grid {
 			display: grid;
 			grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -538,8 +676,28 @@
 
 			.search-bar,
 			.filter-filled,
-			.cards {
+			.cards,
+			.location-cards {
 				grid-template-columns: 1fr 1fr;
+			}
+
+			.locations-preview {
+				grid-template-columns: 1fr;
+				padding: 28px 20px;
+			}
+
+			.locations-rail {
+				justify-content: flex-start;
+			}
+
+			.locations-rail span {
+				font-size: 40px;
+				transform: none;
+				writing-mode: horizontal-tb;
+			}
+
+			.location-cards {
+				min-width: 0;
 			}
 
 			.search-field {
@@ -559,8 +717,13 @@
 
 			.search-bar,
 			.filter-filled,
-			.cards {
+			.cards,
+			.location-cards {
 				grid-template-columns: 1fr;
+			}
+
+			.locations-body {
+				padding-right: 0;
 			}
 
 			.results-preview,
@@ -586,7 +749,7 @@
 			<h1>Guia visual de shortcodes</h1>
 			<p>Documento HTML para GitHub con una previsualizacion estatica de cada elemento del plugin. Los shortcodes reales se renderizan dentro de WordPress, Elementor o WPBakery.</p>
 			<div class="meta">
-				<span>Version 1.1.0</span>
+				<span>Version 1.1.30</span>
 				<span>Elementor compatible</span>
 				<span>WPBakery compatible</span>
 				<span>Developed by The Panther Soft - Vaira Maria Lujan</span>
@@ -632,10 +795,10 @@
 					<h2>Filtered Property Results</h2>
 				</div>
 				<div>
-					<p class="description">Pagina filtrada con el buscador ya completado, breadcrumbs con enlaces de filtros, titulo grande de localidad, cards de propiedades y paginacion.</p>
+					<p class="description">Pagina filtrada con banner fijo superior, buscador ya completado, breadcrumbs con enlaces de filtros, titulo grande de localidad, cards de propiedades y paginacion.</p>
 					<div class="shortcode-box">
 						<label>Shortcode</label>
-						<pre><code>[hy_homes_property_results posts_per_page="8" results_url="/properties/"]</code></pre>
+						<pre><code>[hy_homes_property_results posts_per_page="8" results_url="/properties/" results_banner_image="https://example.com/banner-results.jpg"]</code></pre>
 					</div>
 					<div class="aliases">
 						<code>[panther_hy_homes_results]</code>
@@ -739,7 +902,7 @@
 					<h2>Property Detail Page</h2>
 				</div>
 				<div>
-					<p class="description">Ficha completa de una propiedad con buscador preseleccionado, breadcrumbs, galeria de imagenes/videos, precio, descripcion, boton de WhatsApp, mapa, propiedades relacionadas y banners por localidad.</p>
+					<p class="description">Ficha completa de una propiedad con buscador preseleccionado, breadcrumbs, galeria de imagenes/videos, precio, descripcion, boton de WhatsApp con selector de agentes, mapa, propiedades relacionadas y banners por localidad.</p>
 					<div class="shortcode-box">
 						<label>Shortcode</label>
 						<pre><code>[hy_homes_property_detail related_per_page="4"]</code></pre>
@@ -774,10 +937,83 @@
 			</div>
 		</section>
 
-		<section class="section" id="random-banners">
+		<section class="section" id="locations-carousel">
 			<div class="section__head">
 				<div>
 					<p class="kicker">Shortcode 05</p>
+					<h2>Locations Carousel</h2>
+				</div>
+				<div>
+					<p class="description">Carrusel de localidades creado desde HY Homes Syd &gt; Localidades. Cada card toma nombre, descripcion, etiqueta destacada e imagen, y el boton filtra la pagina de propiedades por esa localidad.</p>
+					<div class="shortcode-box">
+						<label>Shortcode</label>
+						<pre><code>[hy_homes_locations results_url="/properties/" locations="auto"]</code></pre>
+					</div>
+					<div class="shortcode-box">
+						<label>Orden manual opcional</label>
+						<pre><code>[hy_homes_locations results_url="/properties/" locations="Eastgardens & Mascot|Kingsford & Kensington|Randwick & Maroubra"]</code></pre>
+					</div>
+					<div class="aliases">
+						<code>[panther_hy_homes_locations]</code>
+					</div>
+				</div>
+			</div>
+			<div class="preview">
+				<div class="preview__label">Preview</div>
+				<div class="locations-preview">
+					<div class="locations-rail"><span>Locations</span></div>
+					<div class="locations-body">
+						<div class="location-cards">
+							<article class="location-card">
+								<div class="location-card__image">
+									<div class="location-card__copy">
+										<h3>Eastgardens<br>&amp; Mascot</h3>
+										<span>Modern Living &amp; Convenience</span>
+									</div>
+								</div>
+								<div class="location-card__text">
+									<p>A perfect mix of high-rise urban lifestyle and daily convenience, close to shopping hubs and train stations.</p>
+									<a>Explore Properties -></a>
+								</div>
+							</article>
+							<article class="location-card">
+								<div class="location-card__image">
+									<div class="location-card__copy">
+										<h3>Kingsford<br>&amp; Kensington</h3>
+										<span>The University Vibe</span>
+									</div>
+								</div>
+								<div class="location-card__text">
+									<p>The ultimate location for students, with modern study hubs, fitness centers and vibrant dining nearby.</p>
+									<a>Explore Properties -></a>
+								</div>
+							</article>
+							<article class="location-card">
+								<div class="location-card__image">
+									<div class="location-card__copy">
+										<h3>Randwick<br>&amp; Maroubra</h3>
+										<span>Beach &amp; Outdoor Lifestyle</span>
+									</div>
+								</div>
+								<div class="location-card__text">
+									<p>Ideal for those wanting premium comfort close to eastern beaches, wellness areas and a relaxed city lifestyle.</p>
+									<a>Explore Properties -></a>
+								</div>
+							</article>
+						</div>
+						<div class="locations-footer">
+							<h3>Find Your Place in Sydney's Best Neighborhoods</h3>
+							<div class="arrows">&lt; &gt;</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</section>
+
+		<section class="section" id="random-banners">
+			<div class="section__head">
+				<div>
+					<p class="kicker">Shortcode 06</p>
 					<h2>Random Location Banners</h2>
 				</div>
 				<div>
@@ -813,14 +1049,14 @@
 					<p class="description">El plugin agrega un panel lateral llamado HY Homes Syd para administrar propiedades, banners y carga masiva desde hojas de calculo.</p>
 					<div class="shortcode-box">
 						<label>Columnas recomendadas</label>
-						<pre><code>action,type,id,slug,title,description,neighborhood,room_type,bedrooms,bathrooms,street,address,price,availability,price_suffix,status,move_in,detail_url,featured_image_url,gallery_media,map_embed_url,whatsapp_phone,image_url,button_url</code></pre>
+						<pre><code>action,type,id,slug,title,description,neighborhood,room_type,bedrooms,bathrooms,street,address,price,availability_date,availability,price_suffix,status,move_in,detail_url,featured_image_url,gallery_media,map_embed_url,image_url,button_url</code></pre>
 					</div>
 				</div>
 			</div>
 			<div class="admin-grid">
 				<div class="admin-box">
 					<h3>Properties</h3>
-					<p>Crear, editar, eliminar y publicar propiedades con localidad, precio, galeria, mapa, WhatsApp y datos de filtro.</p>
+					<p>Crear, editar, eliminar y publicar propiedades con localidad, precio, galeria, mapa y datos de filtro. WhatsApp se configura una sola vez con tres agentes globales.</p>
 				</div>
 				<div class="admin-box">
 					<h3>Location Banners</h3>

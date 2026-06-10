@@ -75,8 +75,8 @@ final class HY_Homes_Syd_Panther_Elementor_Search_Filter extends \Elementor\Widg
 			array(
 				'label'       => __( 'Results URL', 'hy-homes-syd-panther' ),
 				'type'        => \Elementor\Controls_Manager::URL,
-				'placeholder' => home_url( '/' ),
-				'description' => __( 'Leave empty to search on the current page.', 'hy-homes-syd-panther' ),
+				'placeholder' => home_url( '/properties/' ),
+				'description' => __( 'Leave empty to use /properties/. Do not use /hy-properties/.', 'hy-homes-syd-panther' ),
 			)
 		);
 

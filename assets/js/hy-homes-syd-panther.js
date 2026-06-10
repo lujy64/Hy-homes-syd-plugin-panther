@@ -1,6 +1,9 @@
 (function () {
 	'use strict';
 
+	var externalWhatsAppPanel = null;
+	var externalWhatsAppTrigger = null;
+
 	function closeAll(exceptWrap) {
 		document.querySelectorAll('.hy-homes-search__select-wrap.is-open').forEach(function (wrap) {
 			if (wrap !== exceptWrap) {
@@ -11,6 +14,100 @@
 				}
 			}
 		});
+	}
+
+	function setWhatsAppOpen(picker, isOpen) {
+		var toggle = picker.querySelector('[data-hy-homes-whatsapp-toggle]');
+		var panel = picker.querySelector('[data-hy-homes-whatsapp-panel]');
+
+		picker.classList.toggle('is-open', isOpen);
+
+		if (toggle) {
+			toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+		}
+
+		if (panel) {
+			panel.hidden = !isOpen;
+		}
+	}
+
+	function closeWhatsAppPickers(exceptPicker) {
+		document.querySelectorAll('[data-hy-homes-whatsapp].is-open').forEach(function (picker) {
+			if (picker !== exceptPicker) {
+				setWhatsAppOpen(picker, false);
+			}
+		});
+	}
+
+	function closeExternalWhatsAppPanel() {
+		if (externalWhatsAppPanel) {
+			externalWhatsAppPanel.remove();
+		}
+
+		externalWhatsAppPanel = null;
+		externalWhatsAppTrigger = null;
+	}
+
+	function getWhatsAppPanelTemplate() {
+		return document.querySelector('.hy-homes-whatsapp--floating [data-hy-homes-whatsapp-panel]') || document.querySelector('[data-hy-homes-whatsapp-panel]');
+	}
+
+	function positionExternalWhatsAppPanel(panel, trigger) {
+		var rect = trigger.getBoundingClientRect();
+		var spacing = 14;
+		var panelWidth = panel.offsetWidth;
+		var panelHeight = panel.offsetHeight;
+		var left = rect.left + (rect.width / 2) - (panelWidth / 2);
+		var top = rect.bottom + spacing;
+
+		left = Math.max(16, Math.min(left, window.innerWidth - panelWidth - 16));
+
+		if (top + panelHeight > window.innerHeight - 16) {
+			top = rect.top - panelHeight - spacing;
+		}
+
+		top = Math.max(16, top);
+
+		panel.style.left = left + 'px';
+		panel.style.top = top + 'px';
+	}
+
+	function openLocalWhatsAppPanel(trigger) {
+		var template = getWhatsAppPanelTemplate();
+		var panel;
+
+		if (!template) {
+			return false;
+		}
+
+		closeWhatsAppPickers();
+		closeExternalWhatsAppPanel();
+
+		panel = template.cloneNode(true);
+		panel.removeAttribute('id');
+		panel.hidden = false;
+		panel.classList.add('hy-homes-whatsapp-panel--external');
+		panel.setAttribute('data-hy-homes-whatsapp-external-panel', 'true');
+		document.body.appendChild(panel);
+
+		positionExternalWhatsAppPanel(panel, trigger);
+		externalWhatsAppPanel = panel;
+		externalWhatsAppTrigger = trigger;
+
+		return true;
+	}
+
+	function openFloatingWhatsAppPicker() {
+		var picker = document.querySelector('.hy-homes-whatsapp--floating[data-hy-homes-whatsapp]');
+
+		if (!picker) {
+			return false;
+		}
+
+		closeWhatsAppPickers(picker);
+		setWhatsAppOpen(picker, true);
+
+		return true;
 	}
 
 	function getFieldValue(field) {
@@ -235,11 +332,17 @@
 		var nextButton = carousel.querySelector('[data-hy-homes-carousel-next]');
 		var maxScroll;
 
-		if (!viewport || !prevButton || !nextButton) {
+		if (!viewport) {
 			return;
 		}
 
 		maxScroll = Math.max(0, viewport.scrollWidth - viewport.clientWidth - 1);
+
+		if (!prevButton || !nextButton) {
+			carousel.classList.toggle('is-static', maxScroll <= 1);
+			return;
+		}
+
 		prevButton.disabled = viewport.scrollLeft <= 1;
 		nextButton.disabled = viewport.scrollLeft >= maxScroll;
 		carousel.classList.toggle('is-static', maxScroll <= 1);
@@ -260,11 +363,68 @@
 		});
 	}
 
+	function initCarouselAutoplay(carousel) {
+		var viewport = carousel.querySelector('.hy-homes-carousel__viewport');
+		var interval = parseInt(carousel.dataset.hyHomesCarouselInterval || '5200', 10);
+		var timer;
+		var isPaused = false;
+
+		if (!viewport || carousel.dataset.hyHomesCarouselAutoplay !== 'true' || carousel.dataset.hyHomesCarouselAutoplayBound === 'true') {
+			return;
+		}
+
+		function maxScroll() {
+			return Math.max(0, viewport.scrollWidth - viewport.clientWidth - 1);
+		}
+
+		function moveNext() {
+			var max = maxScroll();
+			var next;
+
+			if (isPaused || document.hidden || max <= 1) {
+				return;
+			}
+
+			next = viewport.scrollLeft + viewport.clientWidth;
+
+			if (next >= max) {
+				next = 0;
+			}
+
+			viewport.scrollTo({
+				left: next,
+				behavior: 'smooth'
+			});
+		}
+
+		function pause() {
+			isPaused = true;
+		}
+
+		function resume() {
+			isPaused = false;
+		}
+
+		timer = window.setInterval(moveNext, Math.max(2500, interval));
+		carousel.addEventListener('mouseenter', pause);
+		carousel.addEventListener('mouseleave', resume);
+		carousel.addEventListener('focusin', pause);
+		carousel.addEventListener('focusout', resume);
+
+		window.addEventListener('beforeunload', function () {
+			window.clearInterval(timer);
+		});
+
+		carousel.dataset.hyHomesCarouselAutoplayBound = 'true';
+	}
+
 	function initCarousels() {
 		document.querySelectorAll('[data-hy-homes-carousel]').forEach(function (carousel) {
 			var viewport = carousel.querySelector('.hy-homes-carousel__viewport');
 			var prevButton = carousel.querySelector('[data-hy-homes-carousel-prev]');
 			var nextButton = carousel.querySelector('[data-hy-homes-carousel-next]');
+
+			initCarouselAutoplay(carousel);
 
 			if (!viewport || !prevButton || !nextButton || carousel.dataset.hyHomesCarouselBound === 'true') {
 				updateCarouselButtons(carousel);
@@ -367,17 +527,108 @@
 		});
 	}
 
+	function initAdminLocalityFields() {
+		document.querySelectorAll('[data-hy-homes-locality-select]').forEach(function (select) {
+			var wrapper = select.closest('.hy-homes-admin-grid');
+			var newField = wrapper ? wrapper.querySelector('[data-hy-homes-locality-new]') : null;
+			var input = newField ? newField.querySelector('input') : null;
+			var addNewValue = select.dataset.addNewValue || '__hy_add_new__';
+
+			if (!newField) {
+				return;
+			}
+
+			function syncNewField() {
+				var shouldShow = select.value === addNewValue;
+
+				newField.hidden = !shouldShow;
+
+				if (input) {
+					input.disabled = !shouldShow;
+					if (!shouldShow) {
+						input.value = '';
+					}
+				}
+			}
+
+			if (select.dataset.hyHomesLocalityBound !== 'true') {
+				select.addEventListener('change', syncNewField);
+				select.dataset.hyHomesLocalityBound = 'true';
+			}
+
+			syncNewField();
+		});
+	}
+
+	function initWhatsAppPickers() {
+		document.querySelectorAll('[data-hy-homes-whatsapp]').forEach(function (picker) {
+			var toggle = picker.querySelector('[data-hy-homes-whatsapp-toggle]');
+
+			if (!toggle || picker.dataset.hyHomesWhatsappBound === 'true') {
+				return;
+			}
+
+			toggle.addEventListener('click', function () {
+				var shouldOpen = !picker.classList.contains('is-open');
+
+				closeWhatsAppPickers(picker);
+				setWhatsAppOpen(picker, shouldOpen);
+			});
+
+			picker.dataset.hyHomesWhatsappBound = 'true';
+		});
+
+	}
+
 	function initHyHomesElements() {
 		initSearchFilters();
 		initCarousels();
 		initDetailGalleries();
+		initAdminLocalityFields();
+		initWhatsAppPickers();
 	}
 
 	document.addEventListener('click', function (event) {
+		var localWhatsAppTrigger = event.target.closest('.hy-homes-whatsapp-open-local, [data-hy-homes-whatsapp-local]');
+		var whatsappTrigger = event.target.closest('.hy-homes-whatsapp-open, [data-hy-homes-whatsapp-open]');
+
+		if (localWhatsAppTrigger && openLocalWhatsAppPanel(localWhatsAppTrigger)) {
+			event.preventDefault();
+			return;
+		}
+
+		if (whatsappTrigger && openFloatingWhatsAppPicker()) {
+			event.preventDefault();
+			return;
+		}
+
 		if (!event.target.closest('.hy-homes-search__select-wrap')) {
 			closeAll();
 		}
+
+		if (!event.target.closest('[data-hy-homes-whatsapp]')) {
+			closeWhatsAppPickers();
+		}
+
+		if (
+			externalWhatsAppPanel &&
+			!event.target.closest('[data-hy-homes-whatsapp-external-panel]') &&
+			!event.target.closest('.hy-homes-whatsapp-open-local, [data-hy-homes-whatsapp-local]')
+		) {
+			closeExternalWhatsAppPanel();
+		}
 	});
+
+	document.addEventListener('keydown', function (event) {
+		if (event.key === 'Escape') {
+			closeAll();
+			closeWhatsAppPickers();
+			closeExternalWhatsAppPanel();
+		}
+	});
+
+	window.addEventListener('resize', closeExternalWhatsAppPanel);
+	window.addEventListener('scroll', closeExternalWhatsAppPanel, true);
 
 	if (document.readyState === 'loading') {
 		document.addEventListener('DOMContentLoaded', initHyHomesElements);

@@ -16,12 +16,15 @@ final class HY_Homes_Syd_Panther_Admin {
 	const MENU_SLUG                = 'hy_homes_syd';
 	const IMPORT_SLUG              = 'hy_homes_syd_import';
 	const MEDIA_SLUG               = 'hy_homes_syd_media';
+	const WHATSAPP_SLUG            = 'hy_homes_syd_whatsapp';
 	const IMPORT_ACTION            = 'hy_homes_syd_import';
 	const MEDIA_SETTINGS_ACTION    = 'hy_homes_syd_media_settings';
 	const MEDIA_UPLOAD_ACTION      = 'hy_homes_syd_media_upload';
+	const WHATSAPP_SETTINGS_ACTION = 'hy_homes_syd_whatsapp_settings';
 	const MEDIA_BASE_URL_OPTION    = 'hy_homes_syd_media_base_url';
 	const MEDIA_BASE_PATH_OPTION   = 'hy_homes_syd_media_base_path';
 	const MEDIA_FFMPEG_PATH_OPTION = 'hy_homes_syd_media_ffmpeg_path';
+	const WHATSAPP_AGENTS_OPTION   = 'hy_homes_syd_whatsapp_agents';
 	const MEDIA_RESULT_TRANSIENT   = 'hy_homes_syd_media_result_';
 
 	/**
@@ -32,6 +35,7 @@ final class HY_Homes_Syd_Panther_Admin {
 		add_action( 'admin_post_' . self::IMPORT_ACTION, array( __CLASS__, 'handle_import' ) );
 		add_action( 'admin_post_' . self::MEDIA_SETTINGS_ACTION, array( __CLASS__, 'handle_media_settings' ) );
 		add_action( 'admin_post_' . self::MEDIA_UPLOAD_ACTION, array( __CLASS__, 'handle_media_upload' ) );
+		add_action( 'admin_post_' . self::WHATSAPP_SETTINGS_ACTION, array( __CLASS__, 'handle_whatsapp_settings' ) );
 	}
 
 	/**
@@ -76,6 +80,15 @@ final class HY_Homes_Syd_Panther_Admin {
 
 		add_submenu_page(
 			self::MENU_SLUG,
+			__( 'WhatsApp (/WhatsApp)', 'hy-homes-syd-panther' ),
+			__( 'WhatsApp (/WhatsApp)', 'hy-homes-syd-panther' ),
+			'manage_options',
+			self::WHATSAPP_SLUG,
+			array( __CLASS__, 'render_whatsapp_page' )
+		);
+
+		add_submenu_page(
+			self::MENU_SLUG,
 			__( 'Media externo (/External media)', 'hy-homes-syd-panther' ),
 			__( 'Media externo (/External media)', 'hy-homes-syd-panther' ),
 			'manage_options',
@@ -88,31 +101,191 @@ final class HY_Homes_Syd_Panther_Admin {
 	 * Render dashboard.
 	 */
 	public static function render_dashboard_page() {
+		$property_counts      = wp_count_posts( HY_Homes_Syd_Panther_Properties::POST_TYPE );
+		$banner_counts        = wp_count_posts( HY_Homes_Syd_Panther_Properties::BANNER_POST_TYPE );
+		$published_properties = isset( $property_counts->publish ) ? absint( $property_counts->publish ) : 0;
+		$draft_properties     = isset( $property_counts->draft ) ? absint( $property_counts->draft ) : 0;
+		$published_banners    = isset( $banner_counts->publish ) ? absint( $banner_counts->publish ) : 0;
+		$locality_count       = wp_count_terms(
+			array(
+				'taxonomy'   => HY_Homes_Syd_Panther_Properties::TAX_NEIGHBORHOOD,
+				'hide_empty' => false,
+			)
+		);
+		$locality_count       = is_wp_error( $locality_count ) ? 0 : absint( $locality_count );
+		$whatsapp_count       = count( self::get_whatsapp_agents() );
+		$media_base_url       = trim( (string) get_option( self::MEDIA_BASE_URL_OPTION, '' ) );
+		$actions              = array(
+			array(
+				'label'       => __( 'Agregar propiedad (/Add property)', 'hy-homes-syd-panther' ),
+				'description' => __( 'Crear una ficha nueva con localidad, precio, medios y disponibilidad.', 'hy-homes-syd-panther' ),
+				'url'         => admin_url( 'post-new.php?post_type=' . HY_Homes_Syd_Panther_Properties::POST_TYPE ),
+				'icon'        => 'dashicons-building',
+				'primary'     => true,
+			),
+			array(
+				'label'       => __( 'Ver propiedades (/View properties)', 'hy-homes-syd-panther' ),
+				'description' => __( 'Editar, publicar o eliminar propiedades ya cargadas.', 'hy-homes-syd-panther' ),
+				'url'         => admin_url( 'edit.php?post_type=' . HY_Homes_Syd_Panther_Properties::POST_TYPE ),
+				'icon'        => 'dashicons-list-view',
+			),
+			array(
+				'label'       => __( 'Localidades (/Neighborhoods)', 'hy-homes-syd-panther' ),
+				'description' => __( 'Administrar nombres, descripciones, imagenes y etiquetas de locations.', 'hy-homes-syd-panther' ),
+				'url'         => admin_url( 'edit-tags.php?taxonomy=' . HY_Homes_Syd_Panther_Properties::TAX_NEIGHBORHOOD . '&post_type=' . HY_Homes_Syd_Panther_Properties::POST_TYPE ),
+				'icon'        => 'dashicons-location-alt',
+			),
+			array(
+				'label'       => __( 'Agregar banner (/Add banner)', 'hy-homes-syd-panther' ),
+				'description' => __( 'Crear banners visuales para amenities o zonas destacadas.', 'hy-homes-syd-panther' ),
+				'url'         => admin_url( 'post-new.php?post_type=' . HY_Homes_Syd_Panther_Properties::BANNER_POST_TYPE ),
+				'icon'        => 'dashicons-format-image',
+				'primary'     => true,
+			),
+			array(
+				'label'       => __( 'Ver banners (/View banners)', 'hy-homes-syd-panther' ),
+				'description' => __( 'Revisar banners por localidad y carrusel aleatorio.', 'hy-homes-syd-panther' ),
+				'url'         => admin_url( 'edit.php?post_type=' . HY_Homes_Syd_Panther_Properties::BANNER_POST_TYPE ),
+				'icon'        => 'dashicons-images-alt2',
+			),
+			array(
+				'label'       => __( 'Importar Excel / Sheets (/Import Excel / Sheets)', 'hy-homes-syd-panther' ),
+				'description' => __( 'Cargar propiedades y banners desde CSV, XLSX o Google Sheets.', 'hy-homes-syd-panther' ),
+				'url'         => admin_url( 'admin.php?page=' . self::IMPORT_SLUG ),
+				'icon'        => 'dashicons-upload',
+			),
+		);
+
+		if ( current_user_can( 'manage_options' ) ) {
+			$actions[] = array(
+				'label'       => __( 'WhatsApp (/WhatsApp)', 'hy-homes-syd-panther' ),
+				'description' => __( 'Configurar hasta tres agentes para consultas generales y fichas.', 'hy-homes-syd-panther' ),
+				'url'         => admin_url( 'admin.php?page=' . self::WHATSAPP_SLUG ),
+				'icon'        => 'dashicons-phone',
+			);
+			$actions[] = array(
+				'label'       => __( 'Media externo (/External media)', 'hy-homes-syd-panther' ),
+				'description' => __( 'Subir ZIPs y generar URLs para imagenes o videos externos.', 'hy-homes-syd-panther' ),
+				'url'         => admin_url( 'admin.php?page=' . self::MEDIA_SLUG ),
+				'icon'        => 'dashicons-cloud-upload',
+			);
+		}
+
+		$shortcodes = array(
+			array(
+				'code'        => '[hy_homes_search_filter]',
+				'title'       => __( 'Buscador con filtro (/Search filter)', 'hy-homes-syd-panther' ),
+				'description' => __( 'Selector de localidad, habitaciones, fecha disponible y boton de busqueda.', 'hy-homes-syd-panther' ),
+			),
+			array(
+				'code'        => '[hy_homes_property_results]',
+				'title'       => __( 'Resultados filtrados (/Filtered results)', 'hy-homes-syd-panther' ),
+				'description' => __( 'Pagina de resultados con buscador, breadcrumbs, cards y paginacion.', 'hy-homes-syd-panther' ),
+			),
+			array(
+				'code'        => '[hy_homes_recent_properties_carousel]',
+				'title'       => __( 'Propiedades recientes (/Recent properties)', 'hy-homes-syd-panther' ),
+				'description' => __( 'Carrusel de cards con las propiedades mas nuevas.', 'hy-homes-syd-panther' ),
+			),
+			array(
+				'code'        => '[hy_homes_property_detail]',
+				'title'       => __( 'Ficha de propiedad (/Property detail)', 'hy-homes-syd-panther' ),
+				'description' => __( 'Galeria, descripcion, WhatsApp, mapa, relacionadas y banners.', 'hy-homes-syd-panther' ),
+			),
+			array(
+				'code'        => '[hy_homes_random_banners]',
+				'title'       => __( 'Banners aleatorios (/Random banners)', 'hy-homes-syd-panther' ),
+				'description' => __( 'Carrusel de todos los banners cargados, sin depender de localidad.', 'hy-homes-syd-panther' ),
+			),
+			array(
+				'code'        => '[hy_homes_locations]',
+				'title'       => __( 'Locations', 'hy-homes-syd-panther' ),
+				'description' => __( 'Carrusel de localidades con imagen, etiqueta destacada y boton filtrado.', 'hy-homes-syd-panther' ),
+			),
+		);
 		?>
-		<div class="wrap">
-			<h1><?php esc_html_e( 'HY Homes Syd', 'hy-homes-syd-panther' ); ?></h1>
-			<p><strong><?php esc_html_e( 'Developed by The Panther Soft - Vaira Maria Lujan', 'hy-homes-syd-panther' ); ?></strong></p>
-			<p><?php esc_html_e( 'Administra propiedades, banners por localidad e importaciones desde hojas de calculo (/Manage properties, location banners and spreadsheet imports).', 'hy-homes-syd-panther' ); ?></p>
+		<div class="wrap hy-homes-dashboard">
+			<section class="hy-homes-dashboard__hero">
+				<div>
+					<p class="hy-homes-dashboard__eyebrow"><?php esc_html_e( 'Developed by The Panther Soft', 'hy-homes-syd-panther' ); ?></p>
+					<h1><?php esc_html_e( 'HY Homes Syd', 'hy-homes-syd-panther' ); ?></h1>
+					<p><?php esc_html_e( 'Administra propiedades, localidades, banners, WhatsApp e importaciones desde un solo lugar (/Manage properties, neighborhoods, banners, WhatsApp and imports from one place).', 'hy-homes-syd-panther' ); ?></p>
+				</div>
+				<a class="hy-homes-dashboard__hero-button" href="<?php echo esc_url( admin_url( 'post-new.php?post_type=' . HY_Homes_Syd_Panther_Properties::POST_TYPE ) ); ?>">
+					<span class="dashicons dashicons-plus-alt2" aria-hidden="true"></span>
+					<?php esc_html_e( 'Nueva propiedad (/New property)', 'hy-homes-syd-panther' ); ?>
+				</a>
+			</section>
 
-			<p>
-				<a class="button button-primary" href="<?php echo esc_url( admin_url( 'post-new.php?post_type=' . HY_Homes_Syd_Panther_Properties::POST_TYPE ) ); ?>"><?php esc_html_e( 'Agregar propiedad (/Add property)', 'hy-homes-syd-panther' ); ?></a>
-				<a class="button" href="<?php echo esc_url( admin_url( 'edit.php?post_type=' . HY_Homes_Syd_Panther_Properties::POST_TYPE ) ); ?>"><?php esc_html_e( 'Ver propiedades (/View properties)', 'hy-homes-syd-panther' ); ?></a>
-				<a class="button button-primary" href="<?php echo esc_url( admin_url( 'post-new.php?post_type=' . HY_Homes_Syd_Panther_Properties::BANNER_POST_TYPE ) ); ?>"><?php esc_html_e( 'Agregar banner (/Add banner)', 'hy-homes-syd-panther' ); ?></a>
-				<a class="button" href="<?php echo esc_url( admin_url( 'edit.php?post_type=' . HY_Homes_Syd_Panther_Properties::BANNER_POST_TYPE ) ); ?>"><?php esc_html_e( 'Ver banners (/View banners)', 'hy-homes-syd-panther' ); ?></a>
-				<a class="button" href="<?php echo esc_url( admin_url( 'admin.php?page=' . self::IMPORT_SLUG ) ); ?>"><?php esc_html_e( 'Importar Excel / Sheets (/Import Excel / Sheets)', 'hy-homes-syd-panther' ); ?></a>
-				<?php if ( current_user_can( 'manage_options' ) ) : ?>
-					<a class="button" href="<?php echo esc_url( admin_url( 'admin.php?page=' . self::MEDIA_SLUG ) ); ?>"><?php esc_html_e( 'Media externo (/External media)', 'hy-homes-syd-panther' ); ?></a>
-				<?php endif; ?>
-			</p>
+			<section class="hy-homes-dashboard__stats" aria-label="<?php esc_attr_e( 'HY Homes Syd summary', 'hy-homes-syd-panther' ); ?>">
+				<div class="hy-homes-dashboard-stat">
+					<span><?php esc_html_e( 'Propiedades publicadas (/Published properties)', 'hy-homes-syd-panther' ); ?></span>
+					<strong><?php echo esc_html( (string) $published_properties ); ?></strong>
+				</div>
+				<div class="hy-homes-dashboard-stat">
+					<span><?php esc_html_e( 'Borradores (/Drafts)', 'hy-homes-syd-panther' ); ?></span>
+					<strong><?php echo esc_html( (string) $draft_properties ); ?></strong>
+				</div>
+				<div class="hy-homes-dashboard-stat">
+					<span><?php esc_html_e( 'Localidades (/Neighborhoods)', 'hy-homes-syd-panther' ); ?></span>
+					<strong><?php echo esc_html( (string) $locality_count ); ?></strong>
+				</div>
+				<div class="hy-homes-dashboard-stat">
+					<span><?php esc_html_e( 'Banners publicados (/Published banners)', 'hy-homes-syd-panther' ); ?></span>
+					<strong><?php echo esc_html( (string) $published_banners ); ?></strong>
+				</div>
+			</section>
 
-			<h2><?php esc_html_e( 'Shortcodes', 'hy-homes-syd-panther' ); ?></h2>
-			<ul>
-				<li><code>[hy_homes_search_filter]</code></li>
-				<li><code>[hy_homes_property_results]</code></li>
-				<li><code>[hy_homes_recent_properties_carousel]</code></li>
-				<li><code>[hy_homes_property_detail]</code></li>
-				<li><code>[hy_homes_random_banners]</code></li>
-			</ul>
+			<div class="hy-homes-dashboard__layout">
+				<section class="hy-homes-dashboard-panel hy-homes-dashboard-panel--main">
+					<div class="hy-homes-dashboard-panel__head">
+						<h2><?php esc_html_e( 'Accesos rapidos (/Quick actions)', 'hy-homes-syd-panther' ); ?></h2>
+						<p><?php esc_html_e( 'Las tareas principales del plugin, ordenadas por flujo de trabajo.', 'hy-homes-syd-panther' ); ?></p>
+					</div>
+					<div class="hy-homes-dashboard-actions">
+						<?php foreach ( $actions as $action ) : ?>
+							<a class="hy-homes-dashboard-action <?php echo ! empty( $action['primary'] ) ? 'is-primary' : ''; ?>" href="<?php echo esc_url( $action['url'] ); ?>">
+								<span class="dashicons <?php echo esc_attr( $action['icon'] ); ?>" aria-hidden="true"></span>
+								<strong><?php echo esc_html( $action['label'] ); ?></strong>
+								<small><?php echo esc_html( $action['description'] ); ?></small>
+							</a>
+						<?php endforeach; ?>
+					</div>
+				</section>
+
+				<aside class="hy-homes-dashboard-panel">
+					<div class="hy-homes-dashboard-panel__head">
+						<h2><?php esc_html_e( 'Estado (/Status)', 'hy-homes-syd-panther' ); ?></h2>
+						<p><?php esc_html_e( 'Configuraciones que conviene revisar antes de publicar.', 'hy-homes-syd-panther' ); ?></p>
+					</div>
+					<div class="hy-homes-dashboard-status">
+						<div>
+							<span><?php esc_html_e( 'WhatsApp agents', 'hy-homes-syd-panther' ); ?></span>
+							<strong><?php echo esc_html( sprintf( __( '%d de 3 configurados', 'hy-homes-syd-panther' ), $whatsapp_count ) ); ?></strong>
+						</div>
+						<div>
+							<span><?php esc_html_e( 'Media externo (/External media)', 'hy-homes-syd-panther' ); ?></span>
+							<strong><?php echo '' !== $media_base_url ? esc_html__( 'Configurado (/Configured)', 'hy-homes-syd-panther' ) : esc_html__( 'Pendiente (/Pending)', 'hy-homes-syd-panther' ); ?></strong>
+						</div>
+					</div>
+				</aside>
+			</div>
+
+			<section class="hy-homes-dashboard-panel">
+				<div class="hy-homes-dashboard-panel__head">
+					<h2><?php esc_html_e( 'Shortcodes', 'hy-homes-syd-panther' ); ?></h2>
+					<p><?php esc_html_e( 'Usalos en paginas de WordPress, Elementor o WPBakery segun corresponda.', 'hy-homes-syd-panther' ); ?></p>
+				</div>
+				<div class="hy-homes-dashboard-shortcodes">
+					<?php foreach ( $shortcodes as $shortcode ) : ?>
+						<article class="hy-homes-dashboard-shortcode">
+							<h3><?php echo esc_html( $shortcode['title'] ); ?></h3>
+							<code><?php echo esc_html( $shortcode['code'] ); ?></code>
+							<p><?php echo esc_html( $shortcode['description'] ); ?></p>
+						</article>
+					<?php endforeach; ?>
+				</div>
+			</section>
 		</div>
 		<?php
 	}
@@ -166,13 +339,123 @@ final class HY_Homes_Syd_Panther_Admin {
 
 			<h2><?php esc_html_e( 'Spreadsheet columns', 'hy-homes-syd-panther' ); ?></h2>
 			<p><?php esc_html_e( 'Use one row per item. The type column must be property or banner.', 'hy-homes-syd-panther' ); ?></p>
-			<textarea readonly rows="8" class="large-text code">action,type,id,slug,title,description,neighborhood,room_type,bedrooms,bathrooms,street,address,price,availability_date,availability,price_suffix,status,move_in,detail_url,featured_image_url,gallery_media,map_embed_url,whatsapp_phone,image_url,button_url
-,property,,,Modern Apartment in Zetland,Fully furnished.,Zetland,1,2,1,Calle xx,Full address,1010,2026-06-10,,pw,,,,https://example.com/card.jpg,https://example.com/gallery-1.jpg,,61400000000,,
-,banner,,,Private Sauna Room,A tranquil space to unwind.,Zetland,,,,,,,,,,,,,,,,,https://example.com/banner.jpg,https://hyhomessyd.com/#locatios
-delete,property,123,modern-apartment-in-zetland,,,,,,,,,,,,,,,,,,,,</textarea>
-			<p class="description"><?php esc_html_e( 'Accepted aliases include accion, tipo, titulo, descripcion, localidad, barrio, imagen, precio, fecha_disponible, disponibilidad, banos, dormitorios, telefono_whatsapp and url_boton. Availability date accepts YYYY-MM-DD and automatically calculates the card label/search filter. Use action=delete or accion=eliminar with an id or slug to move an item to Trash.', 'hy-homes-syd-panther' ); ?></p>
+			<textarea readonly rows="8" class="large-text code">action,type,id,slug,title,description,neighborhood,room_type,bedrooms,bathrooms,street,address,price,availability_date,availability,price_suffix,status,move_in,detail_url,featured_image_url,gallery_media,map_embed_url,image_url,button_url
+,property,,modern-apartment-zetland,,Fully furnished.,Zetland,1,2,1,Calle xx,Full address,1010,2026-06-10,,pw,,,https://hyhomesyd.thepanthersoft.com.ar/property-detail/,https://example.com/card.jpg,https://example.com/gallery-1.jpg,,,
+,banner,,,Private Sauna Room,A tranquil space to unwind.,Zetland,,,,,,,,,,,,,,,,https://example.com/banner.jpg,https://hyhomessyd.com/#locatios
+delete,property,123,modern-apartment-in-zetland,,,,,,,,,,,,,,,,,,,</textarea>
+			<p class="description"><?php esc_html_e( 'Accepted aliases include accion, tipo, titulo, descripcion, localidad, barrio, imagen, precio, fecha_disponible, disponibilidad, banos, dormitorios and url_boton. Availability date accepts YYYY-MM-DD and automatically calculates the card label/search filter. Use action=delete or accion=eliminar with an id or slug to move an item to Trash.', 'hy-homes-syd-panther' ); ?></p>
 		</div>
 		<?php
+	}
+
+	/**
+	 * Return configured WhatsApp agents with phone numbers.
+	 *
+	 * @return array<int,array{label:string,phone:string}>
+	 */
+	public static function get_whatsapp_agents() {
+		$numbers = self::get_whatsapp_agent_numbers();
+		$agents  = array();
+
+		foreach ( $numbers as $index => $phone ) {
+			if ( '' === $phone ) {
+				continue;
+			}
+
+			$agents[] = array(
+				'label' => sprintf( 'Agent %02d', $index ),
+				'phone' => $phone,
+			);
+		}
+
+		return $agents;
+	}
+
+	/**
+	 * Render WhatsApp settings page.
+	 */
+	public static function render_whatsapp_page() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'You do not have permission to manage HY Homes WhatsApp settings.', 'hy-homes-syd-panther' ) );
+		}
+
+		$numbers = self::get_whatsapp_agent_numbers();
+		$saved   = ! empty( $_GET['hy_whatsapp_saved'] );
+		?>
+		<div class="wrap">
+			<h1><?php esc_html_e( 'WhatsApp (/WhatsApp)', 'hy-homes-syd-panther' ); ?></h1>
+			<p><strong><?php esc_html_e( 'Developed by The Panther Soft - Vaira Maria Lujan', 'hy-homes-syd-panther' ); ?></strong></p>
+			<p><?php esc_html_e( 'Configura los tres agentes que se muestran en el WhatsApp flotante general y en el boton de consulta de cada ficha de propiedad (/Configure the three agents shown by the floating WhatsApp button and each property inquiry button).', 'hy-homes-syd-panther' ); ?></p>
+
+			<?php if ( $saved ) : ?>
+				<div class="notice notice-success is-dismissible"><p><?php esc_html_e( 'Configuracion de WhatsApp guardada (/WhatsApp settings saved).', 'hy-homes-syd-panther' ); ?></p></div>
+			<?php endif; ?>
+
+			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+				<input type="hidden" name="action" value="<?php echo esc_attr( self::WHATSAPP_SETTINGS_ACTION ); ?>">
+				<?php wp_nonce_field( self::WHATSAPP_SETTINGS_ACTION, 'hy_homes_whatsapp_settings_nonce' ); ?>
+
+				<div class="hy-homes-admin-fields">
+					<div class="hy-homes-admin-section">
+						<h3><?php esc_html_e( 'Agentes de WhatsApp (/WhatsApp agents)', 'hy-homes-syd-panther' ); ?></h3>
+						<div class="hy-homes-admin-grid hy-homes-admin-grid--3">
+							<?php foreach ( $numbers as $index => $phone ) : ?>
+								<div class="hy-homes-admin-field">
+									<label for="hy_homes_whatsapp_agent_<?php echo esc_attr( $index ); ?>">
+										<?php echo esc_html( sprintf( __( 'Agente %02d (/Agent %02d)', 'hy-homes-syd-panther' ), $index, $index ) ); ?>
+									</label>
+									<input id="hy_homes_whatsapp_agent_<?php echo esc_attr( $index ); ?>" name="hy_homes_whatsapp_agent_<?php echo esc_attr( $index ); ?>" type="tel" value="<?php echo esc_attr( $phone ); ?>" placeholder="61400000000">
+									<p class="hy-homes-admin-help"><?php esc_html_e( 'Incluir codigo de pais sin + ni espacios. Si queda vacio, este agente no se muestra (/Include country code without + or spaces. Empty agents are hidden).', 'hy-homes-syd-panther' ); ?></p>
+								</div>
+							<?php endforeach; ?>
+						</div>
+					</div>
+				</div>
+
+				<?php submit_button( __( 'Guardar WhatsApp (/Save WhatsApp)', 'hy-homes-syd-panther' ) ); ?>
+			</form>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Save WhatsApp settings.
+	 */
+	public static function handle_whatsapp_settings() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'You do not have permission to manage HY Homes WhatsApp settings.', 'hy-homes-syd-panther' ) );
+		}
+
+		check_admin_referer( self::WHATSAPP_SETTINGS_ACTION, 'hy_homes_whatsapp_settings_nonce' );
+
+		$numbers = array();
+
+		for ( $index = 1; $index <= 3; $index++ ) {
+			$field             = 'hy_homes_whatsapp_agent_' . $index;
+			$raw               = isset( $_POST[ $field ] ) ? (string) wp_unslash( $_POST[ $field ] ) : '';
+			$numbers[ $index ] = (string) preg_replace( '/\D+/', '', $raw );
+		}
+
+		update_option( self::WHATSAPP_AGENTS_OPTION, $numbers );
+		wp_safe_redirect( admin_url( 'admin.php?page=' . self::WHATSAPP_SLUG . '&hy_whatsapp_saved=1' ) );
+		exit;
+	}
+
+	/**
+	 * Return saved WhatsApp agent numbers.
+	 *
+	 * @return array<int,string>
+	 */
+	private static function get_whatsapp_agent_numbers() {
+		$stored  = get_option( self::WHATSAPP_AGENTS_OPTION, array() );
+		$numbers = array();
+
+		for ( $index = 1; $index <= 3; $index++ ) {
+			$value             = is_array( $stored ) && isset( $stored[ $index ] ) ? (string) $stored[ $index ] : '';
+			$numbers[ $index ] = (string) preg_replace( '/\D+/', '', $value );
+		}
+
+		return $numbers;
 	}
 
 	/**
@@ -1291,7 +1574,12 @@ delete,property,123,modern-apartment-in-zetland,,,,,,,,,,,,,,,,,,,,</textarea>
 	 * @return string created|updated|skipped
 	 */
 	private static function import_property_row( $row, $default_status ) {
-		$title = self::row_value( $row, array( 'title', 'titulo', 'name', 'nombre' ) );
+		$address      = self::row_value( $row, array( 'address', 'direccion', 'full_address' ) );
+		$neighborhood = self::row_value( $row, array( 'neighborhood', 'localidad', 'barrio', 'location' ) );
+		$manual_title = self::row_value( $row, array( 'title', 'titulo', 'name', 'nombre' ) );
+		$title        = '' !== $address || '' !== $neighborhood
+			? HY_Homes_Syd_Panther_Properties::build_property_title( $address, $neighborhood )
+			: sanitize_text_field( $manual_title );
 
 		if ( '' === $title ) {
 			return 'skipped';
@@ -1341,6 +1629,7 @@ delete,property,123,modern-apartment-in-zetland,,,,,,,,,,,,,,,,,,,,</textarea>
 
 		self::assign_neighborhoods( $post_id, $row );
 		self::update_property_meta_from_row( $post_id, $row );
+		self::sync_imported_property_title( $post_id, $row );
 
 		return $existing_id ? 'updated' : 'created';
 	}
@@ -1445,8 +1734,7 @@ delete,property,123,modern-apartment-in-zetland,,,,,,,,,,,,,,,,,,,,</textarea>
 			'detail_url'         => array( 'detail_url', 'url_detalle' ),
 			'featured_image_url' => array( 'featured_image_url', 'image_url', 'card_image', 'imagen_principal', 'imagen' ),
 			'gallery_media'      => array( 'gallery_media', 'gallery', 'galeria', 'media_urls', 'multimedia' ),
-			'map_embed_url'      => array( 'map_embed_url', 'mapa', 'google_map' ),
-			'whatsapp_phone'     => array( 'whatsapp_phone', 'whatsapp', 'telefono_whatsapp' ),
+			'map_embed_url'      => array( 'map_embed_url', 'mapa', 'google_map', 'url_maps', 'maps_url', 'google_maps_url', 'url_mapa' ),
 			'location_banners'   => array( 'location_banners', 'banners_localidad' ),
 		);
 
@@ -1475,6 +1763,38 @@ delete,property,123,modern-apartment-in-zetland,,,,,,,,,,,,,,,,,,,,</textarea>
 				update_post_meta( $post_id, $meta_key, sanitize_text_field( $value ) );
 			}
 		}
+
+		if ( '' === get_post_meta( $post_id, HY_Homes_Syd_Panther_Properties::META_PREFIX . 'detail_url', true ) ) {
+			update_post_meta( $post_id, HY_Homes_Syd_Panther_Properties::META_PREFIX . 'detail_url', HY_Homes_Syd_Panther_Properties::DEFAULT_DETAIL_URL );
+		}
+	}
+
+	/**
+	 * Sync imported property title with the automatic address/locality format.
+	 *
+	 * @param int                  $post_id Post ID.
+	 * @param array<string,string> $row Row data.
+	 */
+	private static function sync_imported_property_title( $post_id, $row ) {
+		$address      = get_post_meta( $post_id, HY_Homes_Syd_Panther_Properties::META_PREFIX . 'address', true );
+		$neighborhood = self::row_value( $row, array( 'neighborhood', 'localidad', 'barrio', 'location' ) );
+
+		if ( '' === $neighborhood ) {
+			$terms = get_the_terms( $post_id, HY_Homes_Syd_Panther_Properties::TAX_NEIGHBORHOOD );
+
+			if ( ! is_wp_error( $terms ) && ! empty( $terms ) ) {
+				$neighborhood = implode( ' & ', wp_list_pluck( $terms, 'name' ) );
+			}
+		}
+
+		$title = HY_Homes_Syd_Panther_Properties::build_property_title( $address, $neighborhood );
+
+		wp_update_post(
+			array(
+				'ID'         => $post_id,
+				'post_title' => $title,
+			)
+		);
 	}
 
 	/**
